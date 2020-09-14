@@ -3,12 +3,12 @@
     <v-card class="mx-auto" outlined>
       <div class="card__header">
         <div class="header__title">
-          <v-card-title>主机管理</v-card-title>
+          <v-card-title>服务器管理</v-card-title>
           <v-card-subtitle class="pb-0"
             >您可以在这里管理 Minecraft 服务器</v-card-subtitle
           >
         </div>
-        <v-btn color="primary" outlined @click="showDialog">
+        <v-btn color="primary" outlined @click="showAddHostDialog">
           添加主机
           <v-icon right>mdi-server-plus</v-icon>
         </v-btn>
@@ -22,11 +22,11 @@
                 class="host__config"
                 tile
                 large
-                color="blue darken-1"
+                color="error"
                 icon
-                @click="showDialog"
+                @click="showConfirmDialog(host)"
               >
-                <v-icon>mdi-cog</v-icon>
+                <v-icon>mdi-delete</v-icon>
               </v-btn>
               <v-icon size="128">mdi-server</v-icon>
             </div>
@@ -34,19 +34,19 @@
               <div class="information__item">
                 <div class="text--secondary information__title">名称：</div>
                 <div class="font-weight-medium">
-                  {{ host.name ? host.name : "暂无" }}
+                  {{ host.hostName ? host.hostName : "暂无" }}
                 </div>
               </div>
               <div class="information__item">
                 <div class="text--secondary information__title">ip：</div>
                 <div class="font-weight-medium">
-                  {{ host.ip ? host.ip : "暂无" }}
+                  {{ host.hostIP ? host.hostIP : "暂无" }}
                 </div>
               </div>
             </div>
             <div class="host__operation">
-              <v-btn text color="error"
-                ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
+              <v-btn text color="primary" @click="showEditHostDialog(host)"
+                ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
               >
               <v-btn text><v-icon left>mdi-login</v-icon>测试连接</v-btn>
             </div>
@@ -54,33 +54,78 @@
         </v-card>
       </div>
     </v-card>
-    <AddHost :dialog.sync="dialog" title="新增服务器"></AddHost>
+    <AddHost
+      v-if="isAddHostDialogShow"
+      :is-show.sync="isAddHostDialogShow"
+      v-on:refresh="fetchHosts"
+      title="新增服务器"
+    ></AddHost>
+    <EditHost
+      v-if="isEditHostDialogShow"
+      :is-show.sync="isEditHostDialogShow"
+      :host-id="hostID"
+      v-on:refresh="fetchHosts"
+      title="服务器信息"
+    ></EditHost>
+    <Confirm
+      v-if="isConfirmDialogShow"
+      :isShow.sync="isConfirmDialogShow"
+      :title="deleteConfirmTitle"
+      v-on:agree="deleteHost(waitingForDelete)"
+      v-on:disagree="cancelConfirm"
+    ></Confirm>
   </div>
 </template>
 
 <script>
 import AddHost from "./AddHost";
+import EditHost from "./EditHost";
+import Confirm from "../../components/core/Confirm";
 
 export default {
   name: "Host",
 
   components: {
-    AddHost
+    AddHost,
+    EditHost,
+    Confirm
+  },
+
+  created() {
+    this.fetchHosts();
   },
 
   data: () => ({
-    dialog: false,
-    hosts: [
-      {
-        name: "腾讯服务器",
-        ip: "127.0.0.1"
-      }
-    ]
+    isAddHostDialogShow: false,
+    isConfirmDialogShow: false,
+    isEditHostDialogShow: false,
+    deleteConfirmTitle: "你真的要删除这个服务器吗",
+    waitingForDelete: {},
+    hostID: "",
+    hosts: []
   }),
 
   methods: {
-    showDialog() {
-      this.dialog = true;
+    showAddHostDialog() {
+      this.isAddHostDialogShow = true;
+    },
+    showEditHostDialog(host) {
+      this.hostID = host["_id"];
+      this.isEditHostDialogShow = true;
+    },
+    showConfirmDialog(host) {
+      this.waitingForDelete = host;
+      this.isConfirmDialogShow = true;
+    },
+    cancelConfirm() {
+      this.waitingForDelete = {};
+    },
+    async fetchHosts() {
+      this.hosts = await this.$db.hosts.find({});
+    },
+    async deleteHost(host) {
+      await this.$db.hosts.remove({ _id: host["_id"] }, {});
+      await this.fetchHosts();
     }
   }
 };
@@ -118,7 +163,7 @@ export default {
 
 .host__config {
   position: absolute;
-  left: 185px;
+  left: 235px;
   top: 5px;
 }
 

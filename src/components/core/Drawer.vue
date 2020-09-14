@@ -40,7 +40,7 @@ export default {
     navigationItems: [
       {
         icon: "mdi-server",
-        title: "主机",
+        title: "服务器",
         to: "/host"
       },
       {
@@ -50,7 +50,7 @@ export default {
       },
       {
         icon: "mdi-minecraft",
-        title: "服务端",
+        title: "部署",
         to: "/game"
       }
     ]

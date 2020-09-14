@@ -6,7 +6,7 @@
       </v-card-title>
       <v-card-text>
         <v-container>
-          <v-form ref="form">
+          <v-form ref="form" :disabled="isLocked">
             <v-row>
               <v-col cols="12">
                 <v-text-field
@@ -47,6 +47,9 @@
                 <v-text-field
                   v-model="hostPassword"
                   :rules="hostPasswordRules"
+                  :type="isPasswordShow ? 'text' : 'password'"
+                  :append-icon="isPasswordShow ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append="isPasswordShow = !isPasswordShow"
                   label="登录密码*"
                   required
                 ></v-text-field>
@@ -57,14 +60,21 @@
         <small>*注明的字段必填</small>
       </v-card-text>
       <v-card-actions>
+        <v-btn text @click="controlLock">
+          <v-img
+            v-if="isLocked"
+            src="../../assets/lock.png"
+            contain
+            height="40"
+          ></v-img>
+          <v-img
+            v-else
+            src="../../assets/unlock.png"
+            contain
+            height="40"
+          ></v-img>
+        </v-btn>
         <v-spacer></v-spacer>
-        <v-btn
-          color="green darken-2"
-          text
-          :loading="testLoading"
-          @click="testConnection"
-          >测试连接</v-btn
-        >
         <v-btn color="blue darken-1" text @click="hideDialog">取消</v-btn>
         <v-btn color="blue darken-1" text @click="saveHostData">保存</v-btn>
       </v-card-actions>
@@ -78,11 +88,18 @@ export default {
 
   props: {
     isShow: Boolean,
-    title: String
+    title: String,
+    hostId: String
+  },
+
+  created() {
+    this.fetchHostInformation();
   },
 
   data: () => ({
     testLoading: false,
+    isLocked: true,
+    isPasswordShow: false,
     hostName: "",
     hostNameRules: [
       v => !!v || "Host name is required",
@@ -102,17 +119,24 @@ export default {
     hostPassword: "",
     hostPasswordRules: [v => !!v || "Host password is required"]
   }),
+
   methods: {
-    testConnection() {
-      // todo
-      this.testLoading = true;
-      setTimeout(() => (this.testLoading = false), 3000);
+    async fetchHostInformation() {
+      const information = await this.$db.hosts.findOne({ _id: this.hostId });
+      this.hostName = information.hostName;
+      this.hostIP = information.hostIP;
+      this.hostPort = information.hostPort;
+      this.hostUser = information.hostUser;
+      this.hostPassword = information.hostPassword;
+    },
+    controlLock() {
+      this.isLocked = !this.isLocked;
     },
     hideDialog() {
       this.$emit("update:isShow", false);
       this.$emit("refresh");
     },
-    saveHostData() {
+    async saveHostData() {
       if (!this.$refs.form.validate()) {
         return;
       }
@@ -123,7 +147,7 @@ export default {
         hostUser: this.hostUser || "root",
         hostPassword: this.hostPassword
       };
-      this.$db.hosts.insert(data);
+      await this.$db.hosts.update({ _id: this.hostId }, { $set: data });
       this.hideDialog();
     }
   }
