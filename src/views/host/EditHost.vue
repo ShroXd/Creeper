@@ -63,13 +63,13 @@
         <v-btn text @click="controlLock">
           <v-img
             v-if="isLocked"
-            src="../../assets/lock.png"
+            src="../../assets/img/lock.png"
             contain
             height="40"
           ></v-img>
           <v-img
             v-else
-            src="../../assets/unlock.png"
+            src="../../assets/img/unlock.png"
             contain
             height="40"
           ></v-img>

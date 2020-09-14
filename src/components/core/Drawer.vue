@@ -10,7 +10,7 @@
         contain
         height="135"
         width="135"
-        src="../../assets/minecraft.png"
+        src="../../assets/img/minecraft.png"
       />
     </div>
     <v-divider></v-divider>
