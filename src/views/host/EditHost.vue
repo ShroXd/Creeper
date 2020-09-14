@@ -83,6 +83,7 @@
 </template>
 
 <script>
+import { regex } from "../../utils/regex";
 export default {
   name: "AddHost",
 
@@ -108,13 +109,10 @@ export default {
     hostIP: "",
     hostIPRules: [
       v => !!v || "Host IP is required",
-      v =>
-        /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/.test(
-          v
-        ) || "IP must be valid"
+      v => regex.ip.test(v) || "IP must be valid"
     ],
     hostPort: "22",
-    hostPortRules: [v => /^[1-9]\d{0,4}$/.test(v) || "Port must be valid"],
+    hostPortRules: [v => regex.port.test(v) || "Port must be valid"],
     hostUser: "root",
     hostPassword: "",
     hostPasswordRules: [v => !!v || "Host password is required"]
