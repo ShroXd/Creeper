@@ -77,12 +77,20 @@
 
 <script>
 import { regex } from "../../utils/regex";
+import { ipcRenderer } from "electron";
 export default {
   name: "AddHost",
 
   props: {
     isShow: Boolean,
     title: String
+  },
+
+  created() {
+    ipcRenderer.on("connect", (event, arg) => {
+      console.log(arg);
+      this.testLoading = false;
+    });
   },
 
   data: () => ({
@@ -105,10 +113,10 @@ export default {
     hostPasswordRules: [v => !!v || "Host password is required"]
   }),
   methods: {
-    testConnection() {
+    async testConnection() {
       // todo
       this.testLoading = true;
-      setTimeout(() => (this.testLoading = false), 3000);
+      await ipcRenderer.send("connect");
     },
     hideDialog() {
       this.$emit("update:isShow", false);

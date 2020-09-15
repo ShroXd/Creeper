@@ -18,16 +18,6 @@
         <v-card v-for="(host, index) in hosts" :key="index" outlined hover>
           <div class="host">
             <div class="host__icon">
-              <v-btn
-                class="host__config"
-                tile
-                large
-                color="error"
-                icon
-                @click="showConfirmDialog(host)"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
               <v-icon size="128">mdi-server</v-icon>
             </div>
             <div class="host__information">
@@ -45,10 +35,12 @@
               </div>
             </div>
             <div class="host__operation">
+              <v-btn text @click="showConfirmDialog(host)"
+                ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
+              >
               <v-btn text color="primary" @click="showEditHostDialog(host)"
                 ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
               >
-              <v-btn text><v-icon left>mdi-login</v-icon>测试连接</v-btn>
             </div>
           </div>
         </v-card>
@@ -94,6 +86,9 @@ export default {
 
   created() {
     this.fetchHosts();
+    ipcRenderer.on("connect", (event, arg) => {
+      console.log(arg);
+    });
   },
 
   data: () => ({
@@ -108,8 +103,7 @@ export default {
 
   methods: {
     showAddHostDialog() {
-      // this.isAddHostDialogShow = true;
-      ipcRenderer.send("hello");
+      this.isAddHostDialogShow = true;
     },
     showEditHostDialog(host) {
       this.hostID = host["_id"];
@@ -128,6 +122,9 @@ export default {
     async deleteHost(host) {
       await this.$db.hosts.remove({ _id: host["_id"] }, {});
       await this.fetchHosts();
+    },
+    testSSHConnection() {
+      ipcRenderer.send("connect");
     }
   }
 };

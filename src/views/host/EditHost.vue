@@ -75,6 +75,13 @@
           ></v-img>
         </v-btn>
         <v-spacer></v-spacer>
+        <v-btn
+          color="green darken-2"
+          text
+          :loading="testLoading"
+          @click="testConnection"
+          >测试连接</v-btn
+        >
         <v-btn color="blue darken-1" text @click="hideDialog">取消</v-btn>
         <v-btn color="blue darken-1" text @click="saveHostData">保存</v-btn>
       </v-card-actions>
@@ -84,6 +91,7 @@
 
 <script>
 import { regex } from "../../utils/regex";
+import { ipcRenderer } from "electron";
 export default {
   name: "AddHost",
 
@@ -95,6 +103,11 @@ export default {
 
   created() {
     this.fetchHostInformation();
+    ipcRenderer.on("connect", (event, arg) => {
+      if (arg === "连接服务器成功") {
+        this.testLoading = false;
+      }
+    });
   },
 
   data: () => ({
@@ -147,6 +160,11 @@ export default {
       };
       await this.$db.hosts.update({ _id: this.hostId }, { $set: data });
       this.hideDialog();
+    },
+    async testConnection() {
+      // todo
+      this.testLoading = true;
+      await ipcRenderer.send("connect");
     }
   }
 };
