@@ -47,6 +47,9 @@
                 <v-text-field
                   v-model="hostPassword"
                   :rules="hostPasswordRules"
+                  :type="isPasswordShow ? 'text' : 'password'"
+                  :append-icon="isPasswordShow ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append="isPasswordShow = !isPasswordShow"
                   label="登录密码*"
                   required
                 ></v-text-field>
@@ -84,6 +87,7 @@ export default {
 
   data: () => ({
     testLoading: false,
+    isPasswordShow: false,
     hostName: "",
     hostNameRules: [
       v => !!v || "Host name is required",
