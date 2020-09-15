@@ -17,6 +17,7 @@
   "dependencies": {
     "chai-as-promised": "^7.1.1",
     "core-js": "^3.6.5",
+    "element-ui": "^2.13.2",
     "nedb-promises": "^4.0.3",
     "node-ssh": "^7.0.0",
     "vue": "^2.6.11",
