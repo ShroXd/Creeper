@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { ipcRenderer } from "electron";
 import AddHost from "./AddHost";
 import EditHost from "./EditHost";
 import Confirm from "../../components/core/Confirm";
@@ -107,7 +108,8 @@ export default {
 
   methods: {
     showAddHostDialog() {
-      this.isAddHostDialogShow = true;
+      // this.isAddHostDialogShow = true;
+      ipcRenderer.send("hello");
     },
     showEditHostDialog(host) {
       this.hostID = host["_id"];
