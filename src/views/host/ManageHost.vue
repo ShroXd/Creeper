@@ -57,10 +57,18 @@
             </v-row>
           </v-form>
         </v-container>
+        <v-alert v-if="isConnectError" type="error">
+          连接失败
+        </v-alert>
         <small>*注明的字段必填</small>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="controlLock">
+        <v-btn
+          text
+          @click="controlLock"
+          :disabled="testLoading"
+          v-if="mode === 'edit'"
+        >
           <v-img
             v-if="isLocked"
             src="../../assets/img/lock.png"
@@ -80,10 +88,25 @@
           text
           :loading="testLoading"
           @click="testConnection"
-          >测试连接</v-btn
+          :disabled="isConnectTestPassed"
         >
-        <v-btn color="blue darken-1" text @click="hideDialog">取消</v-btn>
-        <v-btn color="blue darken-1" text @click="saveHostData">保存</v-btn>
+          <v-icon v-if="isConnectTestPassed" left>mdi-check-bold</v-icon>
+          {{ !isConnectTestPassed ? "测试连接" : "" }}
+        </v-btn>
+        <v-btn
+          color="blue darken-1"
+          text
+          :disabled="testLoading"
+          @click="hideDialog"
+          >取消</v-btn
+        >
+        <v-btn
+          color="blue darken-1"
+          text
+          :disabled="testLoading"
+          @click="saveHostData"
+          >保存</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -92,20 +115,28 @@
 <script>
 import { regex } from "../../utils/regex";
 import { ipcRenderer } from "electron";
+
 export default {
-  name: "AddHost",
+  name: "ManageHost",
 
   props: {
     isShow: Boolean,
     title: String,
-    hostId: String
+    hostId: String,
+    mode: String
   },
 
   created() {
-    this.fetchHostInformation();
+    this.initializeConfig();
     ipcRenderer.on("connect", (event, arg) => {
       if (arg === "连接服务器成功") {
+        this.isConnectTestPassed = true;
         this.testLoading = false;
+        this.isLocked = false;
+      } else if (arg === "连接服务器失败") {
+        this.testLoading = false;
+        this.isLocked = false;
+        this.isConnectError = true;
       }
     });
   },
@@ -114,6 +145,8 @@ export default {
     testLoading: false,
     isLocked: true,
     isPasswordShow: false,
+    isConnectTestPassed: false,
+    isConnectError: false,
     hostName: "",
     hostNameRules: [
       v => !!v || "Host name is required",
@@ -132,6 +165,13 @@ export default {
   }),
 
   methods: {
+    initializeConfig() {
+      if (this.mode === "edit") {
+        this.fetchHostInformation();
+        return;
+      }
+      this.isLocked = false;
+    },
     async fetchHostInformation() {
       const information = await this.$db.hosts.findOne({ _id: this.hostId });
       this.hostName = information.hostName;
@@ -158,13 +198,25 @@ export default {
         hostUser: this.hostUser || "root",
         hostPassword: this.hostPassword
       };
-      await this.$db.hosts.update({ _id: this.hostId }, { $set: data });
+      if (this.mode === "edit") {
+        await this.$db.hosts.update({ _id: this.hostId }, { $set: data });
+        this.hideDialog();
+        return;
+      }
+      await this.$db.hosts.insert(data);
       this.hideDialog();
     },
     async testConnection() {
-      // todo
       this.testLoading = true;
-      await ipcRenderer.send("connect");
+      this.isLocked = true;
+      this.isConnectError = false;
+      const user = {
+        hostIP: this.hostIP,
+        hostPort: this.hostPort || "22",
+        hostUser: this.hostUser || "root",
+        hostPassword: this.hostPassword
+      };
+      await ipcRenderer.send("connect", user);
     }
   }
 };

@@ -8,7 +8,7 @@
             >您可以在这里管理 Minecraft 服务器</v-card-subtitle
           >
         </div>
-        <v-btn color="primary" outlined @click="showAddHostDialog">
+        <v-btn color="primary" outlined @click="showManageHostDialog">
           添加主机
           <v-icon right>mdi-server-plus</v-icon>
         </v-btn>
@@ -38,7 +38,7 @@
               <v-btn text @click="showConfirmDialog(host)"
                 ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
               >
-              <v-btn text color="primary" @click="showEditHostDialog(host)"
+              <v-btn text color="primary" @click="showManageHostDialog(host)"
                 ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
               >
             </div>
@@ -46,19 +46,14 @@
         </v-card>
       </div>
     </v-card>
-    <AddHost
-      v-if="isAddHostDialogShow"
-      :is-show.sync="isAddHostDialogShow"
+    <ManageHost
+      v-if="isManageHostDialogShow"
+      :is-show.sync="isManageHostDialogShow"
       v-on:refresh="fetchHosts"
-      title="新增服务器"
-    ></AddHost>
-    <EditHost
-      v-if="isEditHostDialogShow"
-      :is-show.sync="isEditHostDialogShow"
       :host-id="hostID"
-      v-on:refresh="fetchHosts"
-      title="服务器信息"
-    ></EditHost>
+      :title="hostID ? '服务器信息' : '新增服务器'"
+      :mode="hostID ? 'edit' : ''"
+    ></ManageHost>
     <Confirm
       v-if="isConfirmDialogShow"
       :isShow.sync="isConfirmDialogShow"
@@ -71,16 +66,14 @@
 
 <script>
 import { ipcRenderer } from "electron";
-import AddHost from "./AddHost";
-import EditHost from "./EditHost";
+import ManageHost from "./ManageHost";
 import Confirm from "../../components/core/Confirm";
 
 export default {
   name: "Host",
 
   components: {
-    AddHost,
-    EditHost,
+    ManageHost,
     Confirm
   },
 
@@ -92,8 +85,8 @@ export default {
   },
 
   data: () => ({
-    isAddHostDialogShow: false,
     isConfirmDialogShow: false,
+    isManageHostDialogShow: false,
     isEditHostDialogShow: false,
     deleteConfirmTitle: "你真的要删除这个服务器吗",
     waitingForDelete: {},
@@ -102,12 +95,11 @@ export default {
   }),
 
   methods: {
-    showAddHostDialog() {
-      this.isAddHostDialogShow = true;
-    },
-    showEditHostDialog(host) {
-      this.hostID = host["_id"];
-      this.isEditHostDialogShow = true;
+    showManageHostDialog(host = null) {
+      if (host) {
+        this.hostID = host["_id"];
+      }
+      this.isManageHostDialogShow = true;
     },
     showConfirmDialog(host) {
       this.waitingForDelete = host;
@@ -122,9 +114,6 @@ export default {
     async deleteHost(host) {
       await this.$db.hosts.remove({ _id: host["_id"] }, {});
       await this.fetchHosts();
-    },
-    testSSHConnection() {
-      ipcRenderer.send("connect");
     }
   }
 };
@@ -150,9 +139,6 @@ export default {
   grid-template-columns: repeat(4, 23%);
   grid-gap: 15px;
   place-content: center center;
-}
-
-.host {
 }
 
 .host__icon {

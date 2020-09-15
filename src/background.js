@@ -90,6 +90,6 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on("connect", e => {
-  connect(win);
+ipcMain.on("connect", (e, param) => {
+  connect(param, win);
 });
