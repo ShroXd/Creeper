@@ -18,5 +18,16 @@ module.exports = {
         }
       ]
     }
+  },
+  devServer: {
+    proxy: {
+      "/api": {
+        target: "https://serverjars.com/api",
+        changeOrigin: true,
+        pathRewrite: {
+          "^/api": ""
+        }
+      }
+    }
   }
 };

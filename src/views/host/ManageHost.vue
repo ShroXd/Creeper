@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isShow" persistent max-width="600px">
     <v-card>
-      <v-card-title>
+      <v-card-title class="headline grey lighten-2">
         <span class="headline">{{ title }}</span>
       </v-card-title>
       <v-card-text>
@@ -62,6 +62,7 @@
         </v-alert>
         <small>*注明的字段必填</small>
       </v-card-text>
+      <v-divider></v-divider>
       <v-card-actions>
         <v-btn
           text
