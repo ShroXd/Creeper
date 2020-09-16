@@ -5,8 +5,8 @@
         <div class="header__title">
           <v-card-title>核心管理</v-card-title>
           <v-card-subtitle class="pb-0"
-            >您可以在这里管理 Minecraft 服务端核心</v-card-subtitle
-          >
+            >您可以在这里管理 Minecraft 服务端核心
+          </v-card-subtitle>
         </div>
         <v-btn color="primary" outlined @click="showManageCoreDialog">
           添加核心
@@ -40,11 +40,12 @@
             2020.2.10 19:45
           </el-table-column>
           <el-table-column prop="address" label="操作">
-            <el-button size="mini" circle><v-icon>mdi-pause</v-icon></el-button>
-            <!--          <el-button size="mini" circle><v-icon>mdi-play</v-icon></el-button>-->
-            <el-button size="mini" circle
-              ><v-icon>mdi-delete</v-icon></el-button
-            >
+            <el-button size="mini" circle>
+              <v-icon>mdi-pause</v-icon>
+            </el-button>
+            <el-button size="mini" circle>
+              <v-icon>mdi-delete</v-icon>
+            </el-button>
           </el-table-column>
         </el-table>
       </div>
@@ -53,12 +54,15 @@
       v-if="isManageCoreDialogShow"
       :is-show.sync="isManageCoreDialogShow"
       v-on:refresh="fetchDownloadItems"
+      v-on:startDownload="startDownload"
     ></ManageCore>
   </div>
 </template>
 
 <script>
 import ManageCore from "./ManageCore";
+import { ipcRenderer } from "electron";
+// import servers from "../../api/servers";
 
 export default {
   name: "Core",
@@ -69,6 +73,11 @@ export default {
 
   created() {
     this.fetchDownloadItems();
+    ipcRenderer.on("downloading-item", (event, arg) => {
+      console.log("downloading-item");
+      console.log(arg);
+      console.log("=" * 20);
+    });
   },
 
   data: () => ({
@@ -87,6 +96,14 @@ export default {
     async fetchDownloadItems() {
       // 获取下载信息
       this.downloadItems = await this.$db.download.find({});
+    },
+    startDownload(param) {
+      const url = `https://serverjars.com/api/fetchJar/${param.type}/${param.version}`;
+      console.log(url);
+      ipcRenderer.send("download", {
+        url: url,
+        dir: param.dir
+      });
     }
   }
 };

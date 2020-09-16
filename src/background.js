@@ -1,11 +1,12 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, dialog } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 import { connect } from "./utils/ssh";
+import { downloader } from "./utils/downloader";
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -24,7 +25,8 @@ function createWindow() {
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION
+      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+      webSecurity: false
     }
   });
 
@@ -92,4 +94,20 @@ if (isDevelopment) {
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);
+});
+
+ipcMain.on("download", (e, param) => {
+  downloader(param, win);
+});
+
+ipcMain.on("open-file-dialog", e => {
+  dialog
+    .showOpenDialog({
+      properties: ["openFile", "openDirectory", "multiSelections"]
+    })
+    .then(files => {
+      if (files) {
+        win.send("selected-dirname", files);
+      }
+    });
 });

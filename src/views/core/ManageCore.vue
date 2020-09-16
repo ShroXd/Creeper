@@ -54,6 +54,35 @@
               </v-col>
             </v-row>
           </v-expand-transition>
+
+          <v-col class="d-flex step" cols="12" v-show="coreType">
+            <div class="text-h5 step__title">
+              Step 3
+            </div>
+            <div class="subtitle-2">
+              选择下载路径
+            </div>
+          </v-col>
+          <v-divider></v-divider>
+          <v-expand-transition>
+            <v-container>
+              <v-row v-show="gameVersion">
+                <v-btn
+                  color="primary"
+                  text
+                  @click="selectDictionary"
+                  :disabled="gameVersion === ''"
+                  v-if="selectedDirName === ''"
+                >
+                  选取文件夹
+                </v-btn>
+                <div v-else>
+                  <div class="dir-title">下载路径：</div>
+                  {{ selectedDirName }}
+                </div>
+              </v-row>
+            </v-container>
+          </v-expand-transition>
         </v-container>
         <small class="ladder">*如获取失败请尝试科学上网</small>
       </v-card-text>
@@ -67,7 +96,7 @@
           color="primary"
           text
           @click="startDownload"
-          :disabled="gameVersion === ''"
+          :disabled="selectedDirName === ''"
         >
           开始下载
         </v-btn>
@@ -78,6 +107,7 @@
 
 <script>
 import servers from "../../api/servers";
+import { ipcRenderer } from "electron";
 
 export default {
   name: "ManageCore",
@@ -86,19 +116,30 @@ export default {
     isShow: Boolean
   },
 
+  created() {
+    ipcRenderer.on("selected-dirname", (event, arg) => {
+      if (arg.filePaths.length !== 0) {
+        this.selectedDirName = arg.filePaths[0];
+        console.log(this.selectedDirName);
+      }
+    });
+  },
+
   data: () => ({
     isFetchingGameVersion: false,
     coreType: "",
     coreTypes: ["Spigot", "Bukkit", "Paper", "Magma", "Mohist", "Vanilla"],
     gameVersion: "",
-    gameVersions: []
+    gameVersions: [],
+    selectedDirName: ""
   }),
 
   methods: {
     async startDownload() {
       const data = {
         type: this.coreType,
-        version: this.gameVersion
+        version: this.gameVersion,
+        dir: this.selectedDirName
       };
 
       const repeatedDownloadItem = await this.$db.download.findOne(data);
@@ -106,6 +147,8 @@ export default {
       if (!repeatedDownloadItem) {
         await this.$db.download.insert(data);
       }
+
+      this.$emit("startDownload", data);
       this.hideDialog();
     },
     cancel() {
@@ -134,6 +177,9 @@ export default {
         .finally(() => {
           this.isFetchingGameVersion = false;
         });
+    },
+    selectDictionary() {
+      ipcRenderer.send("open-file-dialog");
     }
   }
 };
@@ -148,6 +194,11 @@ export default {
 .step__title {
   margin-right: 15px;
   color: #2196f3;
+}
+
+.dir-title {
+  display: inline-block;
+  margin-right: 10px;
 }
 
 .ladder {
