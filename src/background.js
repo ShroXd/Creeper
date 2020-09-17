@@ -103,11 +103,24 @@ ipcMain.on("download", (e, param) => {
 ipcMain.on("open-file-dialog", e => {
   dialog
     .showOpenDialog({
-      properties: ["openFile", "openDirectory", "multiSelections"]
+      properties: ["openDirectory"]
     })
     .then(files => {
       if (files) {
         win.send("selected-dirname", files);
+      }
+    });
+});
+
+ipcMain.on("select-jar-file", () => {
+  dialog
+    .showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Jar", extensions: ["jar"] }]
+    })
+    .then(files => {
+      if (files) {
+        win.send("selected-filename", files);
       }
     });
 });

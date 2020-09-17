@@ -13,12 +13,18 @@
             class="mr-4"
             color="primary"
             outlined
+            :disabled="isDownloading"
             @click="showManageCoreDialog"
           >
             下载核心
             <v-icon right>mdi-cloud-download</v-icon>
           </v-btn>
-          <v-btn color="primary" outlined @click="importCore">
+          <v-btn
+            color="primary"
+            outlined
+            :disabled="isDownloading"
+            @click="importCore"
+          >
             导入核心
             <v-icon right>mdi-plus-thick</v-icon>
           </v-btn>
@@ -42,9 +48,9 @@
               {{ scope.row.total || totalMB }} MB</template
             >
           </el-table-column>
-          <el-table-column prop="date" label="下载地址" width="200">
+          <el-table-column prop="date" label="存储地址" width="200">
             <template slot-scope="scope">
-              {{ scope.row.dir || downloadDir }}
+              {{ scope.row.completeDir || downloadDir }}
             </template>
           </el-table-column>
           <el-table-column prop="name" label="进度" width="600">
@@ -98,7 +104,7 @@
 import ManageCore from "./ManageCore";
 import Confirm from "../../components/core/Confirm";
 import { ipcRenderer } from "electron";
-// import servers from "../../api/servers";
+import { regex } from "../../utils/regex";
 
 export default {
   name: "Core",
@@ -119,7 +125,6 @@ export default {
 
     // 下载项完成
     ipcRenderer.on("download-finished", () => {
-      // 更新下载数据库内容
       this.$db.download.update(
         {
           dir: this.downloadDir
@@ -132,6 +137,25 @@ export default {
         }
       );
       this.isDownloading = false;
+    });
+
+    // 导入核心
+    ipcRenderer.on("selected-filename", (event, arg) => {
+      const fileName = arg.filePaths[0].match(regex.file)[0];
+      const type = fileName.match(regex.coreType)[0].slice(0, -1);
+      const version = fileName.match(regex.coreVersion)[0].slice(1, -4);
+
+      const data = {
+        type: type,
+        version: version,
+        file: fileName,
+        completeDir: arg.filePaths[0],
+        total: "?",
+        percent: 100
+      };
+
+      this.$db.download.insert(data);
+      this.fetchDownloadItems();
     });
   },
 
@@ -185,6 +209,7 @@ export default {
     },
     importCore() {
       // TODO
+      ipcRenderer.send("select-jar-file");
     }
   }
 };

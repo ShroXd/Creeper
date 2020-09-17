@@ -135,11 +135,14 @@ export default {
 
   methods: {
     async startDownload() {
+      const fileName =
+        this.coreType.toLowerCase() + "-" + this.gameVersion + ".jar";
       const data = {
         type: this.coreType,
         version: this.gameVersion,
-        file: this.coreType + this.gameVersion + ".jar",
-        dir: this.selectedDirName
+        file: fileName,
+        dir: this.selectedDirName,
+        completeDir: this.selectedDirName + "/" + fileName
       };
 
       const repeatedDownloadItem = await this.$db.download.findOne(data);
