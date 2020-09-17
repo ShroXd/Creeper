@@ -6,9 +6,11 @@ export async function downloader(param, mainWindow) {
   await download(mainWindow, param.url, {
     directory: param.dir,
     onProgress: progress => {
-      mainWindow.send("downloading-item", progress);
+      mainWindow.send("download-progress", progress);
     }
   });
+
+  mainWindow.send("download-finished");
 
   console.log("完成下载");
 }

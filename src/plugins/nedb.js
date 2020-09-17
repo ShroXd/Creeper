@@ -11,10 +11,17 @@ db.hosts = new Datastore({
   timestampData: true,
   filename: basePath + "hosts"
 });
+
 db.download = new Datastore({
   autoload: true,
   timestampData: true,
   filename: basePath + "download"
+});
+
+db.cores = new Datastore({
+  autoload: true,
+  timestampData: true,
+  filename: basePath + "cores"
 });
 
 Vue.prototype.$db = db;

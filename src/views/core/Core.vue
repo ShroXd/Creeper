@@ -8,10 +8,21 @@
             >您可以在这里管理 Minecraft 服务端核心
           </v-card-subtitle>
         </div>
-        <v-btn color="primary" outlined @click="showManageCoreDialog">
-          添加核心
-          <v-icon right>mdi-cloud-download</v-icon>
-        </v-btn>
+        <div>
+          <v-btn
+            class="mr-4"
+            color="primary"
+            outlined
+            @click="showManageCoreDialog"
+          >
+            下载核心
+            <v-icon right>mdi-cloud-download</v-icon>
+          </v-btn>
+          <v-btn color="primary" outlined @click="importCore">
+            导入核心
+            <v-icon right>mdi-plus-thick</v-icon>
+          </v-btn>
+        </div>
       </div>
       <v-divider></v-divider>
       <div class="download">
@@ -20,32 +31,49 @@
           style="width: 100%"
           :row-style="{ height: '35px' }"
         >
-          <el-table-column prop="date" label="名称" width="180">
-            水桶端
+          <el-table-column prop="date" label="文件名" width="180">
+            <template slot-scope="scope">
+              {{ scope.row.type + " - " + scope.row.version }}
+            </template>
           </el-table-column>
-          <el-table-column prop="name" label="进度" width="380">
-            <v-progress-linear
-              color="black accent-4"
-              value="45"
-            ></v-progress-linear>
-            <span>45%</span>
+          <el-table-column prop="date" label="大小" width="150">
+            <template slot-scope="scope">
+              {{ scope.row.total || receiveMB }} /
+              {{ scope.row.total || totalMB }} MB</template
+            >
           </el-table-column>
-          <el-table-column prop="date" label="速度" width="180">
-            1 MB/s
+          <el-table-column prop="date" label="下载地址" width="200">
+            <template slot-scope="scope">
+              {{ scope.row.dir || downloadDir }}
+            </template>
           </el-table-column>
-          <el-table-column prop="date" label="大小" width="180">
-            12 / 45 MB
+          <el-table-column prop="name" label="进度" width="600">
+            <template slot-scope="scope">
+              <v-progress-linear
+                :value="scope.row.percent || downloadPercent"
+                height="20"
+                striped
+              >
+                <strong
+                  >{{
+                    scope.row.percent || downloadPercent.toFixed(1)
+                  }}
+                  %</strong
+                >
+              </v-progress-linear></template
+            >
           </el-table-column>
-          <el-table-column prop="date" label="添加日期" width="180">
-            2020.2.10 19:45
-          </el-table-column>
-          <el-table-column prop="address" label="操作">
-            <el-button size="mini" circle>
-              <v-icon>mdi-pause</v-icon>
-            </el-button>
-            <el-button size="mini" circle>
-              <v-icon>mdi-delete</v-icon>
-            </el-button>
+          <el-table-column prop="date" label="操作" width="100">
+            <template slot-scope="scope">
+              <el-button
+                type="warning"
+                icon="el-icon-delete"
+                size="mini"
+                circle
+                :disabled="isDownloading"
+                @click="showConfirmDialog(scope.row)"
+              ></el-button
+            ></template>
           </el-table-column>
         </el-table>
       </div>
@@ -56,11 +84,19 @@
       v-on:refresh="fetchDownloadItems"
       v-on:startDownload="startDownload"
     ></ManageCore>
+    <Confirm
+      v-if="isConfirmDialogShow"
+      :isShow.sync="isConfirmDialogShow"
+      :title="deleteConfirmTitle"
+      v-on:agree="deleteCore(waitingForDelete)"
+      v-on:disagree="cancelConfirm"
+    ></Confirm>
   </div>
 </template>
 
 <script>
 import ManageCore from "./ManageCore";
+import Confirm from "../../components/core/Confirm";
 import { ipcRenderer } from "electron";
 // import servers from "../../api/servers";
 
@@ -68,25 +104,48 @@ export default {
   name: "Core",
 
   components: {
-    ManageCore
+    ManageCore,
+    Confirm
   },
 
   created() {
     this.fetchDownloadItems();
-    ipcRenderer.on("downloading-item", (event, arg) => {
-      console.log("downloading-item");
-      console.log(arg);
-      console.log("=" * 20);
+    // 下载进程信息
+    ipcRenderer.on("download-progress", (event, arg) => {
+      this.downloadPercent = arg.percent * 100;
+      this.receiveMB = (arg.transferredBytes / (1024 * 1024)).toFixed(1);
+      this.totalMB = (arg.totalBytes / (1024 * 1024)).toFixed(1);
+    });
+
+    // 下载项完成
+    ipcRenderer.on("download-finished", () => {
+      // 更新下载数据库内容
+      this.$db.download.update(
+        {
+          dir: this.downloadDir
+        },
+        {
+          $set: {
+            total: this.totalMB,
+            percent: 100
+          }
+        }
+      );
+      this.isDownloading = false;
     });
   },
 
   data: () => ({
     isManageCoreDialogShow: false,
-    downloadItems: [
-      {
-        name: "123"
-      }
-    ]
+    isConfirmDialogShow: false,
+    isDownloading: false,
+    deleteConfirmTitle: "你真的要删除这个核心吗",
+    waitingForDelete: {},
+    downloadItems: [],
+    downloadPercent: 0,
+    receiveMB: 0,
+    totalMB: 0,
+    downloadDir: ""
   }),
 
   methods: {
@@ -98,12 +157,34 @@ export default {
       this.downloadItems = await this.$db.download.find({});
     },
     startDownload(param) {
+      this.isDownloading = true;
+      this.downloadDir = param.dir;
       const url = `https://serverjars.com/api/fetchJar/${param.type}/${param.version}`;
-      console.log(url);
       ipcRenderer.send("download", {
         url: url,
         dir: param.dir
       });
+    },
+    showConfirmDialog(core) {
+      this.waitingForDelete = core;
+      this.isConfirmDialogShow = true;
+    },
+    cancelConfirm() {
+      this.waitingForDelete = {};
+    },
+    async deleteCore(core) {
+      await this.$db.download.remove(
+        {
+          type: core.type,
+          version: core.version,
+          dir: core.dir
+        },
+        {}
+      );
+      await this.fetchDownloadItems();
+    },
+    importCore() {
+      // TODO
     }
   }
 };
@@ -112,7 +193,7 @@ export default {
 <style scoped lang="scss">
 .card__header {
   display: grid;
-  grid-template-columns: 87% 10%;
+  grid-template-columns: 75% 25%;
   place-items: end start;
   margin-bottom: 20px;
 }

@@ -120,7 +120,6 @@ export default {
     ipcRenderer.on("selected-dirname", (event, arg) => {
       if (arg.filePaths.length !== 0) {
         this.selectedDirName = arg.filePaths[0];
-        console.log(this.selectedDirName);
       }
     });
   },
@@ -139,6 +138,7 @@ export default {
       const data = {
         type: this.coreType,
         version: this.gameVersion,
+        file: this.coreType + this.gameVersions + ".jar",
         dir: this.selectedDirName
       };
 
@@ -147,6 +147,7 @@ export default {
       if (!repeatedDownloadItem) {
         await this.$db.download.insert(data);
       }
+      //TODO 处理重名文件
 
       this.$emit("startDownload", data);
       this.hideDialog();
@@ -171,7 +172,6 @@ export default {
           type: this.coreType
         })
         .then(res => {
-          console.log(res.data.response);
           this.gameVersions = res.data.response;
         })
         .finally(() => {
