@@ -24,4 +24,10 @@ db.cores = new Datastore({
   filename: basePath + "cores"
 });
 
+db.application = new Datastore({
+  autoload: true,
+  timestampData: true,
+  filename: basePath + "application"
+});
+
 Vue.prototype.$db = db;

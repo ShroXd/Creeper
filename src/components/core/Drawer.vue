@@ -56,7 +56,7 @@ export default {
       {
         icon: "mdi-application",
         title: "部署",
-        to: "/game"
+        to: "/deploy"
       }
     ]
   })
