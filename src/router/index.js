@@ -25,6 +25,11 @@ const routes = [
         path: "/game",
         name: "Game",
         component: () => import("../views/game/Game.vue")
+      },
+      {
+        path: "/mod",
+        name: "Mod",
+        component: () => import("../views/mod/Mod.vue")
       }
     ]
   }

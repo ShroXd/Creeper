@@ -50,6 +50,11 @@ export default {
       },
       {
         icon: "mdi-minecraft",
+        title: "模组",
+        to: "/mod"
+      },
+      {
+        icon: "mdi-application",
         title: "部署",
         to: "/game"
       }
