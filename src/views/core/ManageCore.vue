@@ -138,7 +138,7 @@ export default {
       const data = {
         type: this.coreType,
         version: this.gameVersion,
-        file: this.coreType + this.gameVersions + ".jar",
+        file: this.coreType + this.gameVersion + ".jar",
         dir: this.selectedDirName
       };
 
