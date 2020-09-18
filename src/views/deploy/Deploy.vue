@@ -53,7 +53,7 @@
                       核心文件版本：
                     </v-col>
                     <v-col cols="12" sm="8" md="8">
-                      {{ item.coreDir }}
+                      {{ item.coreFile }}
                     </v-col>
                   </v-row>
                 </v-container>

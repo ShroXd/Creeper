@@ -7,6 +7,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 
 import { connect } from "./utils/ssh";
 import { downloader } from "./utils/downloader";
+import { copy, mkdir } from "./utils/fs";
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -124,3 +125,12 @@ ipcMain.on("select-jar-file", () => {
       }
     });
 });
+
+ipcMain.on("move-file", (e, param) => {
+  //todo
+  copy(param, win);
+});
+
+ipcMain.on("mkdir", (e, param) => {
+  mkdir(param, win);
+})

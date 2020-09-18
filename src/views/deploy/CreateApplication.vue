@@ -84,6 +84,9 @@
           <v-btn color="primary" text @click="confirm">
             创建
           </v-btn>
+          <v-btn color="primary" text @click="selectDirectory">
+            选择目录
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -91,6 +94,8 @@
 </template>
 
 <script>
+import { ipcRenderer } from "electron";
+
 export default {
   name: "CreateApplication",
 
@@ -102,6 +107,12 @@ export default {
   created() {
     this.fetchHosts();
     this.fetchCores();
+
+    ipcRenderer.on("selected-dirname", (event, arg) => {
+      if (arg.filePaths.length !== 0) {
+        this.applicationPath = arg.filePaths[0];
+      }
+    });
   },
 
   data: () => ({
@@ -110,6 +121,7 @@ export default {
       v => !!v || "app name is required",
       v => (v && v.length <= 24) || "Name must be less than 24 characters"
     ],
+    applicationPath: "",
     host: "",
     hosts: [],
     core: "",
@@ -117,21 +129,37 @@ export default {
   }),
 
   methods: {
+    async selectDirectory() {
+      await ipcRenderer.send("open-file-dialog");
+    },
     async confirm() {
       //TODO: 目前 v-select 似乎不支持直接 v-model 写入一个对象
-      const host = this.hosts.filter(item => {
-        return this.host === item.hostName;
-      })[0];
+
       const core = this.cores.filter(item => {
         return this.core === item.file;
       })[0];
+      const host = this.hosts.filter(item => {
+        return this.host === item.hostName;
+      })[0];
+
+      // 随机字符串以保证应用文件夹不相互覆盖
+      const dir = this.applicationPath + "/myClient";
+
+      ipcRenderer.send("mkdir", dir);
+
+      ipcRenderer.send("move-file", {
+        oldPath: core.completeDir,
+        newPath: dir + "/" + core.file
+      });
+
       const data = {
         name: this.applicationName,
         ip: host.hostIP,
         port: host.hostPort,
         user: host.hostUser,
         password: host.hostPassword,
-        coreDir: core.completeDir
+        coreFile: core.file,
+        applicationDir: dir
       };
       await this.$db.application.insert(data);
       this.hideDialog();
