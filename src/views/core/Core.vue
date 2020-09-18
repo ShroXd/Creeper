@@ -25,24 +25,20 @@
         </template>
       </Header>
       <v-divider></v-divider>
-      <div class="download">
-        <el-table
-          :data="downloadItems"
-          style="width: 100%"
-          :row-style="{ height: '35px' }"
-        >
-          <el-table-column prop="date" label="文件名" width="180">
+      <v-container>
+        <el-table :data="downloadItems" :row-style="{ height: '35px' }">
+          <el-table-column prop="date" label="文件名" width="150">
             <template slot-scope="scope">
               {{ scope.row.type + " - " + scope.row.version }}
             </template>
           </el-table-column>
-          <el-table-column prop="date" label="大小" width="150">
+          <el-table-column prop="date" label="大小" width="130">
             <template slot-scope="scope">
               {{ scope.row.total || receiveMB }} /
               {{ scope.row.total || totalMB }} MB</template
             >
           </el-table-column>
-          <el-table-column prop="date" label="存储地址" width="200">
+          <el-table-column prop="date" label="存储地址">
             <template slot-scope="scope">
               {{ scope.row.completeDir || downloadDir }}
             </template>
@@ -63,7 +59,7 @@
               </v-progress-linear></template
             >
           </el-table-column>
-          <el-table-column prop="date" label="操作" width="100">
+          <el-table-column prop="date" label="操作" width="70">
             <template slot-scope="scope">
               <el-button
                 type="danger"
@@ -76,7 +72,7 @@
             ></template>
           </el-table-column>
         </el-table>
-      </div>
+      </v-container>
     </v-card>
     <ManageCore
       v-if="isManageCoreDialogShow"
@@ -211,8 +207,4 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.download {
-  padding: 20px;
-}
-</style>
+<style scoped lang="scss"></style>
