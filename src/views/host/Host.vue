@@ -10,37 +10,42 @@
         </template>
       </Header>
       <v-divider></v-divider>
-      <div class="hosts">
-        <v-card v-for="(host, index) in hosts" :key="index" outlined hover>
-          <div class="host">
-            <div class="host__icon">
+      <v-container>
+        <v-card
+          v-for="(host, index) in hosts"
+          :key="index"
+          outlined
+          hover
+          min-height="200"
+          max-width="300"
+        >
+          <v-container class="text-body-2" fluid>
+            <v-row justify="center">
               <v-icon size="128">mdi-server</v-icon>
+            </v-row>
+            <div class="my-4">
+              <v-row justify="center">
+                <span class="font-weight-light">名称：</span>
+                <span>{{ host.hostName ? host.hostName : "暂无" }}</span>
+              </v-row>
+              <v-row justify="center">
+                <span class="font-weight-light">IP：</span>
+                <span>{{ host.hostIP ? host.hostIP : "暂无" }}</span>
+              </v-row>
             </div>
-            <div class="host__information">
-              <div class="information__item">
-                <div class="text--secondary information__title">名称：</div>
-                <div class="font-weight-medium">
-                  {{ host.hostName ? host.hostName : "暂无" }}
-                </div>
-              </div>
-              <div class="information__item">
-                <div class="text--secondary information__title">ip：</div>
-                <div class="font-weight-medium">
-                  {{ host.hostIP ? host.hostIP : "暂无" }}
-                </div>
-              </div>
-            </div>
-            <div class="host__operation">
-              <v-btn text @click="showConfirmDialog(host)"
+            <v-spacer></v-spacer>
+            <v-divider></v-divider>
+            <v-row class="ma-1" justify="space-around" align="center">
+              <v-btn text color="red" @click="showConfirmDialog(host)"
                 ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
               >
               <v-btn text color="primary" @click="showManageHostDialog(host)"
                 ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
               >
-            </div>
-          </div>
+            </v-row>
+          </v-container>
         </v-card>
-      </div>
+      </v-container>
     </v-card>
     <ManageHost
       v-if="isManageHostDialogShow"
@@ -117,39 +122,4 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.hosts {
-  margin-top: 20px;
-  padding-bottom: 20px;
-  display: grid;
-  grid-template-columns: repeat(4, 23%);
-  grid-gap: 15px;
-  place-content: center center;
-}
-
-.host__icon {
-  text-align: center;
-  padding: 15px 0;
-}
-
-.host__information {
-  border-bottom: 1px solid #e0e0e0;
-  text-align: center;
-  padding-bottom: 5px;
-  font-size: 0.8rem;
-
-  .information__item div {
-    display: inline-block;
-  }
-}
-
-.information__title {
-  margin-right: 5px;
-}
-
-.host__operation {
-  display: flex;
-  margin: 5px 0;
-  justify-content: space-around;
-}
-</style>
+<style scoped lang="scss"></style>
