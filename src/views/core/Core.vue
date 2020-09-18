@@ -1,14 +1,8 @@
 <template>
   <div>
     <v-card class="mx-auto" outlined>
-      <div class="card__header">
-        <div class="header__title">
-          <v-card-title>核心管理</v-card-title>
-          <v-card-subtitle class="pb-0"
-            >您可以在这里管理 Minecraft 服务端核心
-          </v-card-subtitle>
-        </div>
-        <div>
+      <Header title="核心管理" subtitle="您可以在这里管理 Minecraft 服务端核心">
+        <template v-slot:function-btn>
           <v-btn
             class="mr-4"
             color="primary"
@@ -28,8 +22,8 @@
             导入核心
             <v-icon right>mdi-plus-thick</v-icon>
           </v-btn>
-        </div>
-      </div>
+        </template>
+      </Header>
       <v-divider></v-divider>
       <div class="download">
         <el-table
@@ -101,8 +95,9 @@
 </template>
 
 <script>
-import ManageCore from "./ManageCore";
+import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
+import ManageCore from "./ManageCore";
 import { ipcRenderer } from "electron";
 import { regex } from "../../utils/regex";
 
@@ -110,8 +105,9 @@ export default {
   name: "Core",
 
   components: {
-    ManageCore,
-    Confirm
+    Header,
+    Confirm,
+    ManageCore
   },
 
   created() {
@@ -216,26 +212,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.card__header {
-  display: grid;
-  grid-template-columns: 75% 25%;
-  place-items: end start;
-  margin-bottom: 20px;
-}
-
-.header__title {
-  display: inline-block;
-  width: 85%;
-}
-
-.function-container {
-}
-
 .download {
   padding: 20px;
-}
-
-.download-control-btn {
-  margin-right: 15px;
 }
 </style>

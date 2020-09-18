@@ -1,14 +1,7 @@
 <template>
   <div class="about">
     <v-card class="mx-auto" outlined>
-      <div class="card__header">
-        <div class="header__title">
-          <v-card-title>部署</v-card-title>
-          <v-card-subtitle class="pb-0"
-            >您可以在这里创建应用并部署
-          </v-card-subtitle>
-        </div>
-      </div>
+      <Header title="部署" subtitle="您可以在这里创建应用并部署"></Header>
       <v-divider></v-divider>
       <v-row>
         <v-col md="6">
@@ -261,14 +254,13 @@
 </template>
 
 <script>
+import Header from "../../components/core/Header";
 import CreateApplication from "./CreateApplication";
 
 export default {
   name: "Deploy",
 
-  components: {
-    CreateApplication
-  },
+  components: { Header, CreateApplication },
 
   created() {
     this.fetchApplication();
@@ -327,27 +319,4 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.card__header {
-  display: grid;
-  grid-template-columns: 75% 25%;
-  place-items: end start;
-  margin-bottom: 20px;
-}
-
-.header__title {
-  display: inline-block;
-  width: 85%;
-}
-
-.function-container {
-}
-
-.download {
-  padding: 20px;
-}
-
-.download-control-btn {
-  margin-right: 15px;
-}
-</style>
+<style scoped lang="scss"></style>

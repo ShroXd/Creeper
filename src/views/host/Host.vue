@@ -1,18 +1,14 @@
 <template>
   <div>
     <v-card class="mx-auto" outlined>
-      <div class="card__header">
-        <div class="header__title">
-          <v-card-title>服务器管理</v-card-title>
-          <v-card-subtitle class="pb-0"
-            >您可以在这里管理 Minecraft 服务器</v-card-subtitle
-          >
-        </div>
-        <v-btn color="primary" outlined @click="showManageHostDialog">
-          添加主机
-          <v-icon right>mdi-server-plus</v-icon>
-        </v-btn>
-      </div>
+      <Header title="服务器管理" subtitle="您可以在这里管理 Minecraft 服务器">
+        <template v-slot:function-btn>
+          <v-btn color="primary" outlined @click="showManageHostDialog">
+            添加主机
+            <v-icon right>mdi-server-plus</v-icon>
+          </v-btn>
+        </template>
+      </Header>
       <v-divider></v-divider>
       <div class="hosts">
         <v-card v-for="(host, index) in hosts" :key="index" outlined hover>
@@ -66,13 +62,15 @@
 
 <script>
 import { ipcRenderer } from "electron";
-import ManageHost from "./ManageHost";
+import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
+import ManageHost from "./ManageHost";
 
 export default {
   name: "Host",
 
   components: {
+    Header,
     ManageHost,
     Confirm
   },
@@ -120,18 +118,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.card__header {
-  display: grid;
-  grid-template-columns: 87% 10%;
-  place-items: end start;
-  margin-bottom: 20px;
-}
-
-.header__title {
-  display: inline-block;
-  width: 85%;
-}
-
 .hosts {
   margin-top: 20px;
   padding-bottom: 20px;
@@ -144,12 +130,6 @@ export default {
 .host__icon {
   text-align: center;
   padding: 15px 0;
-}
-
-.host__config {
-  position: absolute;
-  left: 235px;
-  top: 5px;
 }
 
 .host__information {
