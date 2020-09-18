@@ -30,6 +30,11 @@ const routes = [
         path: "/mod",
         name: "Mod",
         component: () => import("../views/mod/Mod.vue")
+      },
+      {
+        path: "/script",
+        name: "Script",
+        component: () => import("../views/script/Script.vue")
       }
     ]
   }

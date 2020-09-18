@@ -44,7 +44,7 @@ export default {
         to: "/host"
       },
       {
-        icon: "mdi-code-tags",
+        icon: "mdi-cards-spade",
         title: "核心",
         to: "/core"
       },
@@ -52,6 +52,11 @@ export default {
         icon: "mdi-minecraft",
         title: "模组",
         to: "/mod"
+      },
+      {
+        icon: "mdi-code-tags",
+        title: "脚本",
+        to: "/script"
       },
       {
         icon: "mdi-application",
