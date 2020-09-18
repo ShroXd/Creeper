@@ -61,7 +61,9 @@
               <v-divider></v-divider>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" outlined>开始部署</v-btn>
+                <v-btn color="primary" outlined @click="startDeploy"
+                  >开始部署</v-btn
+                >
               </v-card-actions>
             </v-card>
           </v-container>
@@ -69,11 +71,20 @@
         <v-divider vertical></v-divider>
         <v-col>
           <v-container>
-            <v-card-title>部署日志</v-card-title>
+            <v-card-title
+              >部署日志 <v-spacer> </v-spacer
+              ><v-btn color="primary" outlined>导出日志</v-btn>
+            </v-card-title>
             <v-divider></v-divider>
 
             <v-timeline :reverse="reverse" dense>
-              <v-timeline-item color="green lighten-1" fill-dot left small>
+              <v-timeline-item
+                v-if="startDeployInformation.time"
+                color="green lighten-1"
+                fill-dot
+                left
+                small
+              >
                 <v-card>
                   <v-card-title class="green lighten-1 justify-end">
                     <h2 class="display-1 mr-4 white--text font-weight-light">
@@ -97,7 +108,7 @@
                           </v-col>
                           <v-col>
                             <span class="text-body-1 font-weight-regular">
-                              15:25 EDT
+                              {{ startDeployInformation.startTime }}
                             </span>
                           </v-col>
                         </v-row>
@@ -109,7 +120,7 @@
                           </v-col>
                           <v-col>
                             <span class="text-body-1 font-weight-regular">
-                              102.0.0.1
+                              {{ startDeployInformation.hostIP }}
                             </span>
                           </v-col>
                         </v-row>
@@ -121,7 +132,7 @@
                           </v-col>
                           <v-col>
                             <span class="text-body-1 font-weight-regular">
-                              magma-1.12.2.jar
+                              {{ startDeployInformation.coreVersion }}
                             </span>
                           </v-col>
                         </v-row>
@@ -145,7 +156,13 @@
                 </v-row>
               </v-timeline-item>
 
-              <v-timeline-item color="green lighten-1" fill-dot left small>
+              <v-timeline-item
+                v-if="finishDeployInformation.time"
+                color="green lighten-1"
+                fill-dot
+                left
+                small
+              >
                 <v-card>
                   <v-card-title class="green lighten-1 justify-end">
                     <h2 class="display-1 mr-4 white--text font-weight-light">
@@ -169,7 +186,59 @@
                           </v-col>
                           <v-col>
                             <span class="text-body-1 font-weight-regular">
-                              15:30 EDT
+                              {{ finishDeployInformation.time }}
+                            </span>
+                          </v-col>
+                        </v-row>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card>
+              </v-timeline-item>
+
+              <v-timeline-item
+                v-if="failureDeployInformation.time"
+                color="red lighten-1"
+                fill-dot
+                left
+                small
+              >
+                <v-card>
+                  <v-card-title class="red lighten-1 justify-end">
+                    <h2 class="display-1 mr-4 white--text font-weight-light">
+                      部署失败
+                    </h2>
+                    <v-icon dark size="42">
+                      mdi-minecraft
+                    </v-icon>
+                  </v-card-title>
+                  <v-container>
+                    <v-row>
+                      <v-col class="hidden-sm-and-down" md="3">
+                        <v-icon size="64">mdi-message-alert</v-icon>
+                      </v-col>
+                      <v-col>
+                        <v-row>
+                          <v-col cols="12" sm="4" md="4">
+                            <span class="text-body-1 font-weight-bold">
+                              完成时间：
+                            </span>
+                          </v-col>
+                          <v-col>
+                            <span class="text-body-1 font-weight-regular">
+                              {{ failureDeployInformation.time }}
+                            </span>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col cols="12" sm="4" md="4">
+                            <span class="text-body-1 font-weight-bold">
+                              失败原因：
+                            </span>
+                          </v-col>
+                          <v-col>
+                            <span class="text-body-1 font-weight-regular">
+                              {{ failureDeployInformation.reason }}
                             </span>
                           </v-col>
                         </v-row>
@@ -207,8 +276,21 @@ export default {
 
   data: () => ({
     isCreateApplicationDialogShow: false,
+    isDeploying: false,
     reverse: true,
     applications: [],
+    startDeployInformation: {
+      time: "15:25 ET",
+      hostIP: "127.0.0.1",
+      coreVersion: "magma-1.12.2.jar"
+    },
+    finishDeployInformation: {
+      time: "15:30 EDT"
+    },
+    failureDeployInformation: {
+      time: "15.30 EDT",
+      reason: "SSH 登录服务器失败"
+    },
     deployLogs: [
       {
         log: "开始压缩文件",
@@ -237,6 +319,9 @@ export default {
     async fetchApplication() {
       this.applications = await this.$db.application.find({});
       console.log(this.applications);
+    },
+    startDeploy() {
+      this.isDeploying = true;
     }
   }
 };
