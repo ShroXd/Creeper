@@ -1,17 +1,15 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain, dialog } from "electron";
+import { app, protocol, BrowserWindow } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-import { connect } from "./utils/ssh";
-import { downloader } from "./utils/downloader";
-import { copy, mkdir } from "./utils/fs";
+import "./utils/index";
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win;
+export let win;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -21,7 +19,7 @@ protocol.registerSchemesAsPrivileged([
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 1600,
+    width: 1500,
     height: 1200,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -92,45 +90,3 @@ if (isDevelopment) {
     });
   }
 }
-
-ipcMain.on("connect", (e, param) => {
-  connect(param, win);
-});
-
-ipcMain.on("download", (e, param) => {
-  downloader(param, win);
-});
-
-ipcMain.on("open-file-dialog", e => {
-  dialog
-    .showOpenDialog({
-      properties: ["openDirectory"]
-    })
-    .then(files => {
-      if (files) {
-        win.send("selected-dirname", files);
-      }
-    });
-});
-
-ipcMain.on("select-jar-file", () => {
-  dialog
-    .showOpenDialog({
-      properties: ["openFile"],
-      filters: [{ name: "Jar", extensions: ["jar"] }]
-    })
-    .then(files => {
-      if (files) {
-        win.send("selected-filename", files);
-      }
-    });
-});
-
-ipcMain.on("move-file", (e, param) => {
-  //todo
-  copy(param, win);
-});
-
-ipcMain.on("mkdir", (e, param) => {
-  mkdir(param, win);
-})
