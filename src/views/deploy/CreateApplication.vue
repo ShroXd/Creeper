@@ -1,78 +1,45 @@
 <template>
   <div>
-    <v-dialog v-model="isShow" persistent width="800">
+    <v-dialog v-model="isShow" persistent width="500">
       <v-card>
         <v-card-title class="headline grey lighten-2">
           创建应用
         </v-card-title>
 
         <v-card-text>
-          <v-container>
-            <v-col class="d-flex step" cols="12">
-              <div class="text-h5 step__title">
-                Step 1
-              </div>
-              <div class="subtitle-2">
-                输入服务器应用名称
-              </div>
-            </v-col>
-            <v-divider></v-divider>
-            <v-row>
-              <v-col class="d-flex" cols="12">
-                <v-text-field
-                  v-model="applicationName"
-                  :rules="applicationNameRules"
-                  label="应用名称"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-col class="d-flex step" cols="12">
-              <div class="text-h5 step__title">
-                Step 2
-              </div>
-              <div class="subtitle-2">
-                选择目标服务器
-              </div>
-            </v-col>
-            <v-divider></v-divider>
-            <v-row>
-              <v-col class="d-flex" cols="12">
-                <v-select
-                  :items="hosts"
-                  v-model="host"
-                  item-text="hostName"
-                  label="目标服务器"
-                  dense
-                  outlined
-                  @change="fetchHosts"
-                ></v-select>
-              </v-col>
-            </v-row>
-
-            <v-col class="d-flex step" cols="12">
-              <div class="text-h5 step__title">
-                Step 3
-              </div>
-              <div class="subtitle-2">
-                选择要部署的服务端核心
-              </div>
-            </v-col>
-            <v-divider></v-divider>
-            <v-row>
-              <v-col class="d-flex" cols="12">
-                <v-select
-                  :items="cores"
-                  v-model="core"
-                  item-text="file"
-                  label="服务端核心"
-                  dense
-                  outlined
-                  @change="fetchCores"
-                ></v-select>
-              </v-col>
-            </v-row>
-          </v-container>
+          <steps :step-titles="createApplicationSteps">
+            <template v-slot:name>
+              <v-text-field
+                v-model="applicationName"
+                :rules="applicationNameRules"
+                label="输入你的应用名称"
+              ></v-text-field>
+            </template>
+            <template v-slot:host>
+              <v-select
+                v-show="applicationName"
+                :items="hosts"
+                v-model="host"
+                item-text="hostName"
+                label="选择部署的目标服务器"
+                dense
+                outlined
+                @change="fetchHosts"
+              ></v-select>
+            </template>
+            <template v-slot:core>
+              <v-select
+                v-show="host"
+                :items="cores"
+                v-model="core"
+                item-text="file"
+                label="选择一个服务端核心"
+                dense
+                outlined
+                @change="fetchCores"
+              ></v-select>
+            </template>
+          </steps>
         </v-card-text>
 
         <v-divider></v-divider>
@@ -81,10 +48,15 @@
           <v-btn color="primary" text @click="cancel">
             取消
           </v-btn>
-          <v-btn color="primary" text @click="confirm">
+          <v-btn v-show="applicationPath" color="primary" text @click="confirm">
             创建
           </v-btn>
-          <v-btn color="primary" text @click="selectDirectory">
+          <v-btn
+            :disabled="core === ''"
+            color="primary"
+            text
+            @click="selectDirectory"
+          >
             选择目录
           </v-btn>
         </v-card-actions>
@@ -95,6 +67,7 @@
 
 <script>
 import { ipcRenderer } from "electron";
+import Steps from "../../components/core/Steps";
 
 export default {
   name: "CreateApplication",
@@ -102,6 +75,10 @@ export default {
   props: {
     isShow: Boolean,
     title: String
+  },
+
+  components: {
+    Steps
   },
 
   created() {
@@ -125,7 +102,8 @@ export default {
     host: "",
     hosts: [],
     core: "",
-    cores: []
+    cores: [],
+    createApplicationSteps: ["name", "host", "core"]
   }),
 
   methods: {
