@@ -1,79 +1,74 @@
 <template>
   <div>
-    <v-card class="mx-auto" outlined>
-      <Header title="核心管理" subtitle="您可以在这里管理 Minecraft 服务端核心">
-        <template v-slot:function-btn>
-          <v-btn
-            class="mr-4"
-            color="primary"
-            outlined
-            :disabled="isDownloading"
-            @click="showManageCoreDialog"
+    <Header title="核心管理" subtitle="您可以在这里管理 Minecraft 服务端核心">
+      <template v-slot:function-btn>
+        <v-btn
+          class="mr-4"
+          color="primary"
+          outlined
+          :disabled="isDownloading"
+          @click="showManageCoreDialog"
+        >
+          下载核心
+          <v-icon right>mdi-cloud-download</v-icon>
+        </v-btn>
+        <v-btn
+          color="primary"
+          outlined
+          :disabled="isDownloading"
+          @click="importCore"
+        >
+          导入核心
+          <v-icon right>mdi-plus-thick</v-icon>
+        </v-btn>
+      </template>
+    </Header>
+    <v-divider></v-divider>
+    <v-container>
+      <el-table :data="downloadItems" :row-style="{ height: '35px' }">
+        <el-table-column prop="date" label="文件名" width="150">
+          <template slot-scope="scope">
+            {{ scope.row.type + " - " + scope.row.version }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="date" label="大小" width="130">
+          <template slot-scope="scope">
+            {{ scope.row.total || receiveMB }} /
+            {{ scope.row.total || totalMB }} MB</template
           >
-            下载核心
-            <v-icon right>mdi-cloud-download</v-icon>
-          </v-btn>
-          <v-btn
-            color="primary"
-            outlined
-            :disabled="isDownloading"
-            @click="importCore"
-          >
-            导入核心
-            <v-icon right>mdi-plus-thick</v-icon>
-          </v-btn>
-        </template>
-      </Header>
-      <v-divider></v-divider>
-      <v-container>
-        <el-table :data="downloadItems" :row-style="{ height: '35px' }">
-          <el-table-column prop="date" label="文件名" width="150">
-            <template slot-scope="scope">
-              {{ scope.row.type + " - " + scope.row.version }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="date" label="大小" width="130">
-            <template slot-scope="scope">
-              {{ scope.row.total || receiveMB }} /
-              {{ scope.row.total || totalMB }} MB</template
+        </el-table-column>
+        <el-table-column prop="date" label="存储地址">
+          <template slot-scope="scope">
+            {{ scope.row.completeDir || downloadDir }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="进度" width="600">
+          <template slot-scope="scope">
+            <v-progress-linear
+              :value="scope.row.percent || downloadPercent"
+              height="20"
+              striped
             >
-          </el-table-column>
-          <el-table-column prop="date" label="存储地址">
-            <template slot-scope="scope">
-              {{ scope.row.completeDir || downloadDir }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="name" label="进度" width="600">
-            <template slot-scope="scope">
-              <v-progress-linear
-                :value="scope.row.percent || downloadPercent"
-                height="20"
-                striped
+              <strong
+                >{{ scope.row.percent || downloadPercent.toFixed(1) }} %</strong
               >
-                <strong
-                  >{{
-                    scope.row.percent || downloadPercent.toFixed(1)
-                  }}
-                  %</strong
-                >
-              </v-progress-linear></template
-            >
-          </el-table-column>
-          <el-table-column prop="date" label="操作" width="70">
-            <template slot-scope="scope">
-              <el-button
-                type="danger"
-                icon="el-icon-delete"
-                size="mini"
-                circle
-                :disabled="isDownloading"
-                @click="showConfirmDialog(scope.row)"
-              ></el-button
-            ></template>
-          </el-table-column>
-        </el-table>
-      </v-container>
-    </v-card>
+            </v-progress-linear></template
+          >
+        </el-table-column>
+        <el-table-column prop="date" label="操作" width="70">
+          <template slot-scope="scope">
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              circle
+              :disabled="isDownloading"
+              @click="showConfirmDialog(scope.row)"
+            ></el-button
+          ></template>
+        </el-table-column>
+      </el-table>
+    </v-container>
     <ManageCore
       v-if="isManageCoreDialogShow"
       :is-show.sync="isManageCoreDialogShow"

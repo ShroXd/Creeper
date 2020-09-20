@@ -1,54 +1,52 @@
 <template>
   <div>
-    <v-card class="mx-auto" outlined>
-      <Header title="服务器管理" subtitle="您可以在这里管理 Minecraft 服务器">
-        <template v-slot:function-btn>
-          <v-btn color="primary" outlined @click="showManageHostDialog">
-            添加主机
-            <v-icon right>mdi-server-plus</v-icon>
-          </v-btn>
-        </template>
-      </Header>
-      <v-divider></v-divider>
-      <v-container fluid>
-        <v-row>
-          <v-card
-            class="mx-3 my-1"
-            v-for="(host, index) in hosts"
-            :key="index"
-            outlined
-            hover
-            width="300"
-          >
-            <v-container class="text-body-2" fluid>
+    <Header title="服务器管理" subtitle="您可以在这里管理 Minecraft 服务器">
+      <template v-slot:function-btn>
+        <v-btn color="primary" outlined @click="showManageHostDialog">
+          添加主机
+          <v-icon right>mdi-server-plus</v-icon>
+        </v-btn>
+      </template>
+    </Header>
+    <v-divider></v-divider>
+    <v-container fluid>
+      <v-row>
+        <v-card
+          class="mx-3 my-1"
+          v-for="(host, index) in hosts"
+          :key="index"
+          outlined
+          hover
+          width="300"
+        >
+          <v-container class="text-body-2" fluid>
+            <v-row justify="center">
+              <v-icon size="128">mdi-server</v-icon>
+            </v-row>
+            <div class="my-4">
               <v-row justify="center">
-                <v-icon size="128">mdi-server</v-icon>
+                <span class="font-weight-light">名称：</span>
+                <span>{{ host.hostName ? host.hostName : "暂无" }}</span>
               </v-row>
-              <div class="my-4">
-                <v-row justify="center">
-                  <span class="font-weight-light">名称：</span>
-                  <span>{{ host.hostName ? host.hostName : "暂无" }}</span>
-                </v-row>
-                <v-row justify="center">
-                  <span class="font-weight-light">IP：</span>
-                  <span>{{ host.hostIP ? host.hostIP : "暂无" }}</span>
-                </v-row>
-              </div>
-              <v-spacer></v-spacer>
-              <v-divider></v-divider>
-              <v-row class="ma-1" justify="space-around" align="center">
-                <v-btn text color="red" @click="showConfirmDialog(host)"
-                  ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
-                >
-                <v-btn text color="primary" @click="showManageHostDialog(host)"
-                  ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
-                >
+              <v-row justify="center">
+                <span class="font-weight-light">IP：</span>
+                <span>{{ host.hostIP ? host.hostIP : "暂无" }}</span>
               </v-row>
-            </v-container>
-          </v-card>
-        </v-row>
-      </v-container>
-    </v-card>
+            </div>
+            <v-spacer></v-spacer>
+            <v-divider></v-divider>
+            <v-row class="ma-1" justify="space-around" align="center">
+              <v-btn text color="red" @click="showConfirmDialog(host)"
+                ><v-icon left>mdi-delete</v-icon>删除主机</v-btn
+              >
+              <v-btn text color="primary" @click="showManageHostDialog(host)"
+                ><v-icon left>mdi-cog</v-icon>编辑主机</v-btn
+              >
+            </v-row>
+          </v-container>
+        </v-card>
+      </v-row>
+    </v-container>
     <ManageHost
       v-if="isManageHostDialogShow"
       :is-show.sync="isManageHostDialogShow"
