@@ -127,7 +127,7 @@ export default {
     });
 
     // 导入核心
-    ipcRenderer.on("selected-filename", (event, arg) => {
+    ipcRenderer.on("selected-file", (event, arg) => {
       const fileName = arg.filePaths[0].match(regex.file)[0];
       const type = fileName.match(regex.coreType)[0].slice(0, -1);
       const version = fileName.match(regex.coreVersion)[0].slice(1, -4);
@@ -196,7 +196,7 @@ export default {
     },
     importCore() {
       // TODO
-      ipcRenderer.send("select-jar-file");
+      ipcRenderer.send("open-jar-file-dialog");
     }
   }
 };

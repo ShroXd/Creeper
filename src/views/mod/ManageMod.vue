@@ -10,6 +10,7 @@
           <template v-slot:name>
             <v-text-field
               v-model="modName"
+              :rules="modNameRules"
               label="输入 Mod 名称"
             ></v-text-field>
           </template>
@@ -43,9 +44,24 @@
         <v-btn color="primary" text @click="cancel">
           取消
         </v-btn>
-        <v-btn color="primary" text @click="addMod">
-          添加
+        <v-btn
+          :disabled="modClass === ''"
+          color="primary"
+          text
+          @click="addFile"
+        >
+          {{ modFilePath === "" ? "选择文件" : "重新选择文件" }}
         </v-btn>
+        <v-expand-transition>
+          <v-btn
+            v-show="modFilePath !== ''"
+            color="primary"
+            text
+            @click="addMod"
+          >
+            添加
+          </v-btn>
+        </v-expand-transition>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -53,11 +69,22 @@
 
 <script>
 import Steps from "../../components/core/Steps";
+import { ipcRenderer } from "electron";
+import { gameVersions, modClasses } from "../../utils/static";
+
 export default {
   name: "ManageMod",
 
   components: {
     Steps
+  },
+
+  created() {
+    ipcRenderer.on("selected-file", (event, arg) => {
+      if (arg) {
+        this.modFilePath = arg.filePaths[0];
+      }
+    });
   },
 
   props: {
@@ -72,58 +99,30 @@ export default {
       v => (v && v.length <= 24) || "Name must be less than 24 characters"
     ],
     gameVersion: "",
-    gameVersions: [
-      "1.16.3",
-      "1.16.2",
-      "1.16.1",
-      "1.16",
-      "1.15.2",
-      "1.15.1",
-      "1.15",
-      "1.14.4",
-      "1.14.3",
-      "1.14.2",
-      "1.14.1",
-      "1.14",
-      "1.13.2",
-      "1.13.1",
-      "1.13",
-      "1.12.2",
-      "1.12.1",
-      "1.12",
-      "1.11.2",
-      "1.11.1",
-      "1.11",
-      "1.10.2",
-      "1.10.1",
-      "1.10",
-      "1.9.4",
-      "1.9.3",
-      "1.9.2",
-      "1.9.1",
-      "1.9",
-      "1.8.9",
-      "1.8.7"
-    ],
+    gameVersions: gameVersions,
     modClass: "",
-    modClasses: [
-      "科技",
-      "魔法",
-      "冒险",
-      "农业",
-      "装饰",
-      "实用",
-      "辅助",
-      "魔改"
-    ],
+    modClasses: modClasses,
+    modFilePath: "",
     manageModSteps: ["name", "version", "class"]
   }),
 
   methods: {
     hideDialog() {
       this.$emit("update:isShow", false);
+      this.$emit("refresh");
     },
-    addMod() {
+    addFile() {
+      ipcRenderer.send("open-jar-file-dialog");
+    },
+    async addMod() {
+      const data = {
+        modName: this.modName,
+        gameVersion: this.gameVersion,
+        modClass: this.modClass,
+        modFilePath: this.modFilePath
+      };
+      await this.$db.mod.insert(data);
+
       this.hideDialog();
     },
     cancel() {

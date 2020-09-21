@@ -108,7 +108,7 @@ export default {
 
   methods: {
     async selectDirectory() {
-      await ipcRenderer.send("open-file-dialog");
+      await ipcRenderer.send("open-directory-dialog");
     },
     async confirm() {
       //TODO: 目前 v-select 似乎不支持直接 v-model 写入一个对象

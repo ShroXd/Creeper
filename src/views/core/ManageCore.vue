@@ -153,7 +153,7 @@ export default {
         });
     },
     selectDictionary() {
-      ipcRenderer.send("open-file-dialog");
+      ipcRenderer.send("open-directory-dialog");
     }
   }
 };

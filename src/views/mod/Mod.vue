@@ -11,7 +11,12 @@
           导入模组
           <v-icon right>mdi-puzzle</v-icon>
         </v-btn>
-        <v-btn color="error" outlined>
+        <v-btn
+          color="error"
+          outlined
+          @click="showConfirmDialog"
+          :disabled="selected.length === 0"
+        >
           删除
           <v-icon right>mdi-delete</v-icon>
         </v-btn>
@@ -20,30 +25,41 @@
     <v-divider></v-divider>
     <v-container fluid>
       <v-data-table
+        v-model="selected"
+        item-key="_id"
         :headers="tableHeaders"
-        :items="tableData"
-        :items-per-page="5"
+        :items="mods"
+        :items-per-page="10"
         show-select
+        single-select
       ></v-data-table>
     </v-container>
+    <Confirm
+      title="你真的要删除模组吗"
+      v-if="isConfirmDialogShow"
+      :is-show.sync="isConfirmDialogShow"
+      v-on:agree="deleteMod(waitingForDelete)"
+      v-on:disagree="cancelConfirm"
+    ></Confirm>
     <ManageMod
-      v-model="selected"
       v-if="isManageModDialogShow"
       :isShow.sync="isManageModDialogShow"
       :v-on:refresh="fetchModData"
-      title="添加模组"
+      title="导入模组"
     ></ManageMod>
   </div>
 </template>
 
 <script>
 import Header from "../../components/core/Header";
+import Confirm from "../../components/core/Confirm";
 import ManageMod from "./ManageMod";
 export default {
   name: "Mod",
 
   components: {
     Header,
+    Confirm,
     ManageMod
   },
 
@@ -53,10 +69,11 @@ export default {
 
   data: () => ({
     isManageModDialogShow: false,
+    isConfirmDialogShow: false,
     tableHeaders: [
       {
         text: "名称",
-        value: "name"
+        value: "modName"
       },
       {
         text: "游戏版本",
@@ -64,36 +81,42 @@ export default {
       },
       {
         text: "分类",
-        value: "classification"
+        value: "modClass"
       },
       {
-        text: "前置",
-        value: "pre"
+        text: "文件路径",
+        value: "modFilePath"
       }
     ],
-    tableData: [
-      {
-        name: "拔刀剑",
-        gameVersion: "1.12.2",
-        pre: null,
-        classification: "冒险"
-      },
-      {
-        name: "拔刀剑",
-        gameVersion: "1.12.2",
-        pre: null,
-        classification: "冒险"
-      }
-    ],
-    selected: []
+    mods: [],
+    selected: [],
+    waitingForDelete: []
   }),
 
   methods: {
     async fetchModData() {
-      await this.$db.mod.find({});
+      this.mods = await this.$db.mod.find({});
     },
     showManageModDialog() {
       this.isManageModDialogShow = true;
+    },
+    showConfirmDialog() {
+      this.waitingForDelete = this.selected;
+      this.isConfirmDialogShow = true;
+    },
+    async deleteMod() {
+      const data = this.waitingForDelete[0]["_id"];
+      await this.$db.mod.remove(
+        {
+          _id: data
+        },
+        {}
+      );
+      await this.fetchModData();
+      this.selected = [];
+    },
+    cancelConfirm() {
+      this.waitingForDelete = [];
     }
   }
 };

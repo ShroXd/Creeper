@@ -28,19 +28,19 @@ ipcMain.on("mkdir", (e, param) => {
   });
 });
 
-ipcMain.on("open-file-dialog", () => {
+ipcMain.on("open-directory-dialog", () => {
   dialog
     .showOpenDialog({
       properties: ["openDirectory"]
     })
-    .then(files => {
-      if (files) {
-        win.send("selected-dirname", files);
+    .then(dir => {
+      if (dir) {
+        win.send("selected-dirname", dir);
       }
     });
 });
 
-ipcMain.on("select-jar-file", () => {
+ipcMain.on("open-jar-file-dialog", () => {
   dialog
     .showOpenDialog({
       properties: ["openFile"],
@@ -48,7 +48,7 @@ ipcMain.on("select-jar-file", () => {
     })
     .then(files => {
       if (files) {
-        win.send("selected-filename", files);
+        win.send("selected-file", files);
       }
     });
 });
