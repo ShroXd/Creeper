@@ -3,7 +3,7 @@ import { win } from "../background";
 
 import { connect } from "./ssh";
 import { downloader } from "./downloader";
-import { copy, mkdir } from "./fs";
+import { copy, mkdir, open, save } from "./fs";
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);
@@ -25,6 +25,18 @@ ipcMain.on("move-file", (e, param) => {
 ipcMain.on("mkdir", (e, param) => {
   mkdir(param).then(() => {
     win.send("mkdirSuccess", `创建文件夹完成`);
+  });
+});
+
+ipcMain.on("open-file", (e, param) => {
+  open(param).then(res => {
+    win.send("openSuccess", res);
+  });
+});
+
+ipcMain.on("save-file", (e, param) => {
+  save(param).then(() => {
+    win.send("saveSuccess", "ok");
   });
 });
 

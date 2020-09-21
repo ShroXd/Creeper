@@ -12,28 +12,34 @@ db.hosts = new Datastore({
   filename: basePath + "hosts"
 });
 
-db.download = new Datastore({
-  autoload: true,
-  timestampData: true,
-  filename: basePath + "download"
-});
-
 db.cores = new Datastore({
   autoload: true,
   timestampData: true,
   filename: basePath + "cores"
 });
 
-db.application = new Datastore({
+db.download = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "application"
+  filename: basePath + "download"
 });
 
 db.mod = new Datastore({
   autoload: true,
   timestampData: true,
   filename: basePath + "mod"
+});
+
+db.script = new Datastore({
+  autoload: true,
+  timestampData: true,
+  filename: basePath + "script"
+});
+
+db.application = new Datastore({
+  autoload: true,
+  timestampData: true,
+  filename: basePath + "application"
 });
 
 Vue.prototype.$db = db;
