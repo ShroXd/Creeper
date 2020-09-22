@@ -66,8 +66,9 @@
 </template>
 
 <script>
-import { ipcRenderer } from "electron";
 import Steps from "../../components/core/Steps";
+import { ipcRenderer } from "electron";
+import { resolvePath } from "../../utils/path";
 
 export default {
   name: "CreateApplication",
@@ -127,7 +128,7 @@ export default {
 
       ipcRenderer.send("move-file", {
         oldPath: core.completeDir,
-        newPath: dir + "/" + core.file
+        newPath: resolvePath(dir, core.file)
       });
 
       const data = {

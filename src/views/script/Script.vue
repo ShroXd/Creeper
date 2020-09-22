@@ -88,10 +88,12 @@
 </template>
 
 <script>
-import { ipcRenderer } from "electron";
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import CreateScript from "./CreateScript";
+import { ipcRenderer } from "electron";
+import { resolvePath } from "../../utils/path";
+
 import "codemirror/theme/base16-light.css"; // theme css
 import "codemirror/mode/shell/shell.js"; // language
 import "codemirror/addon/selection/active-line.js";
@@ -166,7 +168,10 @@ export default {
 
     saveScript() {
       const param = {
-        path: this.editing.scriptPath + "/" + this.editing.scriptName + ".sh",
+        path: resolvePath(
+          this.editing.scriptPath,
+          this.editing.scriptName + ".sh"
+        ),
         code: this.code
       };
       ipcRenderer.send("save-file", param);

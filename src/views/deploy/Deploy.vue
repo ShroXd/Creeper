@@ -18,35 +18,29 @@
             min-height="200"
             v-for="(item, index) in applications"
             :key="index"
+            outlined
+            hover
           >
             <v-card-title>{{ item.name }}</v-card-title>
             <v-divider></v-divider>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-icon color="teal" size="16">
-                    mdi-checkbox-blank-circle-outline
+            <v-container class="body-2 font-weight-light">
+              <v-row>
+                <v-col cols="12">
+                  <v-icon class="mr-3" color="blue" size="22">
+                    mdi-server
                   </v-icon>
-                  <v-col cols="12" sm="3" md="3">
-                    目标服务器 IP：
-                  </v-col>
-                  <v-col cols="12" sm="8" md="8">
-                    {{ item.ip }}
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-icon color="teal" size="16">
-                    mdi-checkbox-blank-circle-outline
+                  {{ item.ip }}
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12">
+                  <v-icon class="mr-3" color="blue" size="22">
+                    mdi-cards-spade
                   </v-icon>
-                  <v-col cols="12" sm="3" md="3">
-                    核心文件版本：
-                  </v-col>
-                  <v-col cols="12" sm="8" md="8">
-                    {{ item.coreFile }}
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
+                  {{ normalizePath(item.applicationDir, item.coreFile) }}
+                </v-col>
+              </v-row>
+            </v-container>
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -251,6 +245,7 @@
 <script>
 import Header from "../../components/core/Header";
 import CreateApplication from "./CreateApplication";
+import { resolvePath } from "../../utils/path";
 
 export default {
   name: "Deploy",
@@ -299,13 +294,14 @@ export default {
   }),
 
   methods: {
+    normalizePath(path, file) {
+      return resolvePath(path, file);
+    },
     showCreateApplicationDialog() {
-      // todo
       this.isCreateApplicationDialogShow = true;
     },
     async fetchApplication() {
       this.applications = await this.$db.application.find({});
-      console.log(this.applications);
     },
     startDeploy() {
       this.isDeploying = true;

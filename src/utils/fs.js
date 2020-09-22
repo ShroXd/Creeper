@@ -1,4 +1,5 @@
 const fsPromises = require("fs").promises;
+const resolvePath = require("./path").resolvePath;
 
 export async function copy(path) {
   await fsPromises.copyFile(path.oldPath, path.newPath);
@@ -10,7 +11,7 @@ export async function mkdir(path) {
 
 export async function open(param) {
   return await fsPromises.readFile(
-    param.scriptPath + "/" + param.scriptName + ".sh",
+    resolvePath(param.scriptPath, param.scriptName + ".sh"),
     {
       encoding: "utf-8",
       flag: "a+"

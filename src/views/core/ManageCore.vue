@@ -72,8 +72,9 @@
 
 <script>
 import servers from "../../api/servers";
-import { ipcRenderer } from "electron";
 import Steps from "../../components/core/Steps";
+import { ipcRenderer } from "electron";
+import { resolvePath } from "../../utils/path";
 
 export default {
   name: "ManageCore",
@@ -113,7 +114,7 @@ export default {
         version: this.gameVersion,
         file: fileName,
         dir: this.selectedDirName,
-        completeDir: this.selectedDirName + "/" + fileName
+        completeDir: resolvePath(this.selectedDirName, fileName)
       };
 
       const repeatedDownloadItem = await this.$db.download.findOne(data);
