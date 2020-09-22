@@ -24,61 +24,124 @@
       </template>
     </Header>
     <v-divider></v-divider>
-    <v-container>
-      <el-table :data="downloadItems" :row-style="{ height: '35px' }">
-        <el-table-column prop="date" label="文件名" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.type + " - " + scope.row.version }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="date" label="大小" width="130">
-          <template slot-scope="scope">
-            {{ scope.row.total || receiveMB }} /
-            {{ scope.row.total || totalMB }} MB</template
-          >
-        </el-table-column>
-        <el-table-column prop="date" label="存储地址">
-          <template slot-scope="scope">
-            {{ scope.row.completeDir || downloadDir }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="name" label="进度" width="600">
-          <template slot-scope="scope">
-            <v-progress-linear
-              :value="scope.row.percent || downloadPercent"
-              height="20"
-              striped
-            >
-              <strong
-                >{{ scope.row.percent || downloadPercent.toFixed(1) }} %</strong
+    <v-container fluid>
+      <v-row>
+        <v-card
+          class="mx-3 my-1"
+          outlined
+          hover
+          v-for="(item, index) in cores"
+          :key="index"
+          width="300"
+        >
+          <v-container>
+            <v-row justify="center">
+              <v-img
+                class="mt-6 mb-8"
+                src="../../assets/img/box.png"
+                width="150"
+                height="150"
+                contain
+              ></v-img>
+            </v-row>
+            <v-divider></v-divider>
+            <div class="mt-3 text-h6">{{ item.fileName }}</div>
+            <v-row align="center">
+              <v-chip class="ml-3" color="green" outlined label small>
+                <v-icon small left>mdi-flash</v-icon>
+                {{ item.totalSize | normalizeSize }} MB
+              </v-chip>
+              <v-spacer></v-spacer>
+              <v-btn
+                tile
+                large
+                icon
+                color="red darken-1"
+                @click="showConfirmDialog(item)"
               >
-            </v-progress-linear></template
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </v-row>
+            <v-expand-transition>
+              <div class="mr-3 text-body-2">
+                {{ item.filePath }}
+              </div>
+            </v-expand-transition>
+          </v-container>
+        </v-card>
+        <v-expand-transition>
+          <v-card
+            class="mx-3 my-1"
+            outlined
+            hover
+            width="300"
+            v-if="downloadProcess.name"
           >
-        </el-table-column>
-        <el-table-column prop="date" label="操作" width="70">
-          <template slot-scope="scope">
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              size="mini"
-              circle
-              :disabled="isDownloading"
-              @click="showConfirmDialog(scope.row)"
-            ></el-button
-          ></template>
-        </el-table-column>
-      </el-table>
+            <v-container>
+              <v-row justify="center">
+                <v-progress-circular
+                  class="mt-6 mb-8"
+                  :rotate="360"
+                  :size="150"
+                  :width="15"
+                  :value="downloadProcess.progress"
+                  color="primary"
+                  :indeterminate="isDownloading"
+                >
+                  {{ downloadProcess.progress | normalizePercent }} %
+                </v-progress-circular>
+              </v-row>
+              <v-divider></v-divider>
+              <div class="mt-3 text-h6">{{ downloadProcess.name }}</div>
+              <v-row align="center">
+                <div class="ml-3 text-body-2">
+                  {{ downloadProcess.downloaded | normalizeSize }} /
+                  {{ downloadProcess.total | normalizeSize }} MB
+                </div>
+                <v-spacer></v-spacer>
+                <v-chip class="mr-3" color="primary" outlined label small>
+                  <v-icon small left>mdi-flash</v-icon>
+                  {{ downloadProcess.speed | normalizeSize }} MB/s
+                </v-chip>
+              </v-row>
+            </v-container>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                v-if="isDownloadPaused"
+                tile
+                large
+                icon
+                @click="downloadPlay"
+              >
+                <v-icon>mdi-play</v-icon>
+              </v-btn>
+              <v-btn v-else tile large icon @click="downloadPause">
+                <v-icon>mdi-pause</v-icon>
+              </v-btn>
+              <v-btn
+                tile
+                large
+                icon
+                color="red darken-1"
+                @click="downloadCancel"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-expand-transition>
+      </v-row>
     </v-container>
     <ManageCore
       v-if="isManageCoreDialogShow"
       :is-show.sync="isManageCoreDialogShow"
-      v-on:refresh="fetchDownloadItems"
       v-on:startDownload="startDownload"
     ></ManageCore>
     <Confirm
       v-if="isConfirmDialogShow"
       :isShow.sync="isConfirmDialogShow"
-      :title="deleteConfirmTitle"
+      title="你真的要删除这个核心吗"
       v-on:agree="deleteCore(waitingForDelete)"
       v-on:disagree="cancelConfirm"
     ></Confirm>
@@ -89,8 +152,11 @@
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import ManageCore from "./ManageCore";
+import fs from "fs";
+import path from "path";
+import { DownloaderHelper } from "node-downloader-helper";
 import { ipcRenderer } from "electron";
-import { regex } from "../../utils/regex";
+import { normalizeFileSize, normalizePercent } from "../../utils/utils";
 
 export default {
   name: "Core",
@@ -102,79 +168,89 @@ export default {
   },
 
   created() {
-    this.fetchDownloadItems();
-    // 下载进程信息
-    ipcRenderer.on("download-progress", (event, arg) => {
-      this.downloadPercent = arg.percent * 100;
-      this.receiveMB = (arg.transferredBytes / (1024 * 1024)).toFixed(1);
-      this.totalMB = (arg.totalBytes / (1024 * 1024)).toFixed(1);
-    });
+    this.fetchCores();
+    this.importCoreListener();
+  },
 
-    // 下载项完成
-    ipcRenderer.on("download-finished", () => {
-      this.$db.download.update(
-        {
-          dir: this.downloadDir
-        },
-        {
-          $set: {
-            total: this.totalMB,
-            percent: 100
-          }
-        }
-      );
-      this.isDownloading = false;
-    });
-
-    // 导入核心
-    ipcRenderer.on("selected-file", (event, arg) => {
-      const fileName = arg.filePaths[0].match(regex.file)[0];
-      const type = fileName.match(regex.coreType)[0].slice(0, -1);
-      const version = fileName.match(regex.coreVersion)[0].slice(1, -4);
-
-      const data = {
-        type: type,
-        version: version,
-        file: fileName,
-        completeDir: arg.filePaths[0],
-        total: "?",
-        percent: 100
-      };
-
-      this.$db.download.insert(data);
-      this.fetchDownloadItems();
-    });
+  filters: {
+    normalizeSize: size => {
+      if (!size) return;
+      return normalizeFileSize(size);
+    },
+    normalizePercent: percent => {
+      if (!percent) return;
+      return normalizePercent(percent);
+    }
   },
 
   data: () => ({
     isManageCoreDialogShow: false,
     isConfirmDialogShow: false,
     isDownloading: false,
-    deleteConfirmTitle: "你真的要删除这个核心吗",
-    waitingForDelete: {},
-    downloadItems: [],
-    downloadPercent: 0,
-    receiveMB: 0,
-    totalMB: 0,
-    downloadDir: ""
+    isDownloadPaused: false,
+    cores: [],
+    downloadProcess: {},
+    waitingForDelete: {}
   }),
 
   methods: {
     showManageCoreDialog() {
       this.isManageCoreDialogShow = true;
     },
-    async fetchDownloadItems() {
+    async fetchCores() {
       // 获取下载信息
-      this.downloadItems = await this.$db.download.find({});
+      this.cores = await this.$db.cores.find({});
+      console.log(this.cores);
     },
-    startDownload(param) {
+    async startDownload(param) {
       this.isDownloading = true;
-      this.downloadDir = param.dir;
       const url = `https://serverjars.com/api/fetchJar/${param.type}/${param.version}`;
-      ipcRenderer.send("download", {
-        url: url,
-        dir: param.dir
+      this.constructDownloadObject(url, param.dir);
+    },
+    constructDownloadObject(url, dir) {
+      this.isDownloading = true;
+      this.downloadProcess = {
+        name: "...",
+        total: "...",
+        downloaded: "...",
+        progress: 0,
+        speed: 0
+      };
+      this.dl = new DownloaderHelper(url, dir);
+      this.dl.on("start", () => {
+        this.isDownloading = true;
       });
+      this.dl.on("progress.throttled", res => {
+        if (this.isDownloading) this.isDownloading = false;
+        this.downloadProcess = res;
+      });
+      this.dl.on("pause", () => {
+        this.isDownloadPaused = true;
+      });
+      this.dl.on("resume", () => {
+        this.isDownloadPaused = false;
+      });
+      this.dl.on("end", async res => {
+        const data = {
+          fileName: res.fileName,
+          filePath: res.filePath,
+          totalSize: res.onDiskSize
+        };
+        await this.$db.cores.insert(data);
+        await this.fetchCores();
+        this.downloadProcess = {};
+      });
+      this.dl.start();
+    },
+    downloadPlay() {
+      this.dl.start();
+    },
+    downloadPause() {
+      this.dl.pause();
+    },
+    downloadCancel() {
+      this.dl.stop();
+      this.downloadProcess = {};
     },
     showConfirmDialog(core) {
       this.waitingForDelete = core;
@@ -184,19 +260,33 @@ export default {
       this.waitingForDelete = {};
     },
     async deleteCore(core) {
-      await this.$db.download.remove(
+      await this.$db.cores.remove(
         {
-          type: core.type,
-          version: core.version,
-          dir: core.dir
+          fileName: core.fileName,
+          filePath: core.filePath,
+          totalSize: core.totalSize
         },
         {}
       );
-      await this.fetchDownloadItems();
+      await this.fetchCores();
     },
     importCore() {
-      // TODO
       ipcRenderer.send("open-jar-file-dialog");
+    },
+    importCoreListener() {
+      ipcRenderer.on("selected-file", async (event, arg) => {
+        const fileSize = fs.statSync(arg.filePaths[0]).size;
+        const fileName = path.basename(arg.filePaths[0]);
+
+        const data = {
+          fileName: fileName,
+          filePath: arg.filePaths[0],
+          totalSize: fileSize
+        };
+
+        await this.$db.cores.insert(data);
+        await this.fetchCores();
+      });
     }
   }
 };

@@ -23,6 +23,7 @@
                   v-model="hostIP"
                   :rules="hostIPRules"
                   label="服务器 IP*"
+                  required
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="6">
@@ -71,38 +72,31 @@
           v-if="mode === 'edit'"
         >
           <v-img
-            v-if="isLocked"
+            v-show="isLocked"
             src="../../assets/img/lock.png"
             contain
             height="40"
           ></v-img>
           <v-img
-            v-else
+            v-show="!isLocked"
             src="../../assets/img/unlock.png"
             contain
             height="40"
           ></v-img>
         </v-btn>
         <v-spacer></v-spacer>
+        <v-btn text @click="hideDialog">取消</v-btn>
         <v-btn
-          color="green darken-2"
           text
           :loading="testLoading"
-          @click="testConnection"
           :disabled="isConnectTestPassed"
+          @click="testConnection"
         >
           <v-icon v-if="isConnectTestPassed" left>mdi-check-bold</v-icon>
-          {{ !isConnectTestPassed ? "测试连接" : "" }}
+          {{ isConnectTestPassed ? "" : "测试连接" }}
         </v-btn>
         <v-btn
-          color="blue darken-1"
-          text
-          :disabled="testLoading"
-          @click="hideDialog"
-          >取消</v-btn
-        >
-        <v-btn
-          color="blue darken-1"
+          color="primary"
           text
           :disabled="testLoading"
           @click="saveHostData"
@@ -129,17 +123,7 @@ export default {
 
   created() {
     this.initializeConfig();
-    ipcRenderer.on("connect", (event, arg) => {
-      if (arg === "连接服务器成功") {
-        this.isConnectTestPassed = true;
-        this.testLoading = false;
-        this.isLocked = false;
-      } else if (arg === "连接服务器失败") {
-        this.testLoading = false;
-        this.isLocked = false;
-        this.isConnectError = true;
-      }
-    });
+    this.checkConnectResult();
   },
 
   data: () => ({
@@ -150,22 +134,33 @@ export default {
     isConnectError: false,
     hostName: "",
     hostNameRules: [
-      v => !!v || "Host name is required",
-      v => (v && v.length <= 24) || "Name must be less than 24 characters"
+      v => !!v || "给东西取名字然后去爱它，是成为变态的第一步",
+      v => (v && v.length <= 24) || "名字需要少于 24 个字符"
     ],
     hostIP: "",
     hostIPRules: [
-      v => !!v || "Host IP is required",
-      v => regex.ip.test(v) || "IP must be valid"
+      v => !!v || "你需要输入服务器 IP 地址",
+      v => regex.ip.test(v) || "IP 格式不正确"
     ],
     hostPort: "22",
-    hostPortRules: [v => regex.port.test(v) || "Port must be valid"],
+    hostPortRules: [v => regex.port.test(v) || "Port 格式不正确"],
     hostUser: "root",
     hostPassword: "",
-    hostPasswordRules: [v => !!v || "Host password is required"]
+    hostPasswordRules: [v => !!v || "你需要输入登录密码"]
   }),
 
   methods: {
+    checkConnectResult() {
+      ipcRenderer.on("connect", (event, arg) => {
+        if (arg === "连接服务器成功") {
+          this.isConnectTestPassed = true;
+          this.testLoading = false;
+        } else if (arg === "连接服务器失败") {
+          this.isConnectError = true;
+          this.testLoading = false;
+        }
+      });
+    },
     initializeConfig() {
       if (this.mode === "edit") {
         this.fetchHostInformation();

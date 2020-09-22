@@ -57,16 +57,15 @@
     ></ManageHost>
     <Confirm
       v-if="isConfirmDialogShow"
-      :isShow.sync="isConfirmDialogShow"
-      :title="deleteConfirmTitle"
+      :is-show.sync="isConfirmDialogShow"
       v-on:agree="deleteHost(waitingForDelete)"
       v-on:disagree="cancelConfirm"
+      title="你真的要删除这个服务器吗"
     ></Confirm>
   </div>
 </template>
 
 <script>
-import { ipcRenderer } from "electron";
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import ManageHost from "./ManageHost";
@@ -82,16 +81,12 @@ export default {
 
   created() {
     this.fetchHosts();
-    ipcRenderer.on("connect", (event, arg) => {
-      console.log(arg);
-    });
   },
 
   data: () => ({
     isConfirmDialogShow: false,
     isManageHostDialogShow: false,
     isEditHostDialogShow: false,
-    deleteConfirmTitle: "你真的要删除这个服务器吗",
     waitingForDelete: {},
     hostID: "",
     hosts: []

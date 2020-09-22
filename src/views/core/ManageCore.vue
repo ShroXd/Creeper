@@ -8,9 +8,9 @@
         <steps :step-titles="manageCoreSteps">
           <template v-slot:core>
             <v-select
+              v-model="coreType"
               :items="coreTypes"
               :disabled="isFetchingGameVersion"
-              v-model="coreType"
               label="选择一个服务端核心"
               dense
               outlined
@@ -22,10 +22,10 @@
               v-show="coreType"
               :items="gameVersions"
               v-model="gameVersion"
-              item-text="version"
-              item-value="version"
               :loading="isFetchingGameVersion"
               :disabled="isFetchingGameVersion"
+              item-text="version"
+              item-value="version"
               label="选择一个游戏版本"
               dense
               outlined
@@ -74,7 +74,6 @@
 import servers from "../../api/servers";
 import Steps from "../../components/core/Steps";
 import { ipcRenderer } from "electron";
-import { resolvePath } from "../../utils/path";
 
 export default {
   name: "ManageCore",
@@ -107,22 +106,11 @@ export default {
 
   methods: {
     async startDownload() {
-      const fileName =
-        this.coreType.toLowerCase() + "-" + this.gameVersion + ".jar";
       const data = {
         type: this.coreType,
         version: this.gameVersion,
-        file: fileName,
-        dir: this.selectedDirName,
-        completeDir: resolvePath(this.selectedDirName, fileName)
+        dir: this.selectedDirName
       };
-
-      const repeatedDownloadItem = await this.$db.download.findOne(data);
-
-      if (!repeatedDownloadItem) {
-        await this.$db.download.insert(data);
-      }
-      //TODO 处理重名文件
 
       this.$emit("startDownload", data);
       this.hideDialog();
@@ -132,7 +120,6 @@ export default {
     },
     hideDialog() {
       this.$emit("update:isShow", false);
-      this.$emit("refresh");
     },
     fetchGameVersion() {
       if (!this.coreType) {
@@ -153,6 +140,7 @@ export default {
           this.isFetchingGameVersion = false;
         });
     },
+
     selectDictionary() {
       ipcRenderer.send("open-directory-dialog");
     }
