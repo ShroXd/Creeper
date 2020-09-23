@@ -4,6 +4,7 @@ import { win } from "../background";
 import { connect } from "./ssh";
 import { downloader } from "./downloader";
 import { copy, mkdir, open, save } from "./fs";
+import { initializeServerFile, zipApplication } from "./deploy";
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);
@@ -63,4 +64,12 @@ ipcMain.on("open-jar-file-dialog", () => {
         win.send("selected-file", files);
       }
     });
+});
+
+ipcMain.on("initialize-server-file", (e, param) => {
+  initializeServerFile(param);
+});
+
+ipcMain.on("zip-application", (e, param) => {
+  zipApplication(param);
 });

@@ -4,6 +4,7 @@ import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
 import "./plugins/nedb";
+import "./plugins/day";
 import "./plugins/elementUI";
 import "./plugins/codemirror";
 

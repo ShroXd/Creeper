@@ -17,8 +17,10 @@
   "dependencies": {
     "axios": "^0.20.0",
     "chai-as-promised": "^7.1.1",
+    "compressing": "^1.5.1",
     "core-js": "^3.6.5",
     "crypto-random-string": "^3.3.0",
+    "dayjs": "^1.8.36",
     "electron-dl": "^3.0.2",
     "element-ui": "^2.13.2",
     "lodash": "^4.17.20",

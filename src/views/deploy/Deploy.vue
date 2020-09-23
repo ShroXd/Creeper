@@ -47,7 +47,9 @@
               <v-btn color="red darken-1" text @click="showConfirmDialog(item)"
                 >删除</v-btn
               >
-              <v-btn color="primary" text @click="startDeploy">开始部署</v-btn>
+              <v-btn color="primary" text @click="startDeploy(item)"
+                >开始部署</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-container>
@@ -63,7 +65,7 @@
 
           <v-timeline :reverse="reverse" dense>
             <v-timeline-item
-              v-if="startDeployInformation.time"
+              v-if="startDeployInformation.startTime"
               color="green lighten-1"
               fill-dot
               left
@@ -116,7 +118,7 @@
                         </v-col>
                         <v-col>
                           <span class="text-body-1 font-weight-regular">
-                            {{ startDeployInformation.coreVersion }}
+                            {{ startDeployInformation.core }}
                           </span>
                         </v-col>
                       </v-row>
@@ -137,6 +139,59 @@
               <v-row justify="space-between">
                 <v-col cols="7">{{ item.log }}</v-col>
                 <v-col class="text-right" cols="5">{{ item.time }}</v-col>
+              </v-row>
+            </v-timeline-item>
+
+            <v-timeline-item
+              v-if="isNeedConfirmEula"
+              color="green lighten-1"
+              fill-dot
+              left
+              small
+            >
+              <v-card>
+                <v-card-title class="lighten-1">
+                  <h2 class="text-h5 mr-4 font-weight-light">
+                    需要您确认 EULA
+                  </h2>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text
+                  >#By changing the setting below to TRUE you are indicating
+                  your agreement to our EULA
+                  (https://account.mojang.com/documents/minecraft_eula). #and
+                  also agreeing that tacos are tasty. #Wed Sep 23 11:18:15 CST
+                  2020
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn depressed small color="error" @click="disagreeEula"
+                    >不同意</v-btn
+                  >
+                  <v-btn depressed small @click="agreeEula">同意</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-timeline-item>
+
+            <v-timeline-item
+              class="mb-4"
+              icon-color="white"
+              color="white"
+              fill-dot
+              large
+            >
+              <template v-slot:icon>
+                <v-progress-circular
+                  indeterminate
+                  color="primary"
+                ></v-progress-circular>
+              </template>
+              <v-row justify="space-between">
+                <v-col cols="7">{{ currentStageDoing.log }}</v-col>
+                <v-col class="text-right" cols="5">{{
+                  currentStageDoing.time
+                }}</v-col>
               </v-row>
             </v-timeline-item>
 
@@ -254,6 +309,8 @@
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import CreateApplication from "./CreateApplication";
+import path from "path";
+import { ipcRenderer } from "electron";
 
 export default {
   name: "Deploy",
@@ -262,6 +319,9 @@ export default {
 
   created() {
     this.fetchApplication();
+    this.initializeServerFileListener();
+    this.doingLogsListener();
+    this.finishedStageListener();
   },
 
   data: () => ({
@@ -269,38 +329,19 @@ export default {
     isConfirmDialogShow: false,
     isDeploying: false,
     reverse: true,
+    isNeedConfirmEula: false,
     applications: [],
     waitingForDelete: {},
-    startDeployInformation: {
-      time: "15:25 ET",
-      hostIP: "127.0.0.1",
-      coreVersion: "magma-1.12.2.jar"
-    },
-    finishDeployInformation: {
-      time: "15:30 EDT"
-    },
-    failureDeployInformation: {
-      time: "15.30 EDT",
-      reason: "SSH 登录服务器失败"
-    },
-    deployLogs: [
-      {
-        log: "开始压缩文件",
-        time: "15:26 EDT"
-      },
-      {
-        log: "正在上传",
-        time: "15:27 EDT"
-      },
-      {
-        log: "在线解压",
-        time: "15:27 EDT"
-      },
-      {
-        log: "正在启动服务端",
-        time: "15:27 EDT"
-      }
-    ]
+    deployingApp: {},
+    execParams: {},
+    zipResult: "",
+    initializeServerFileLogs: "",
+    startDeployInformation: {},
+    deployLogs: [],
+    // 正在进行
+    currentStageDoing: {},
+    finishDeployInformation: {},
+    failureDeployInformation: {}
   }),
 
   methods: {
@@ -327,8 +368,74 @@ export default {
       this.waitingForDelete = {};
       await this.fetchApplication();
     },
-    startDeploy() {
+
+    startDeploy(app) {
       this.isDeploying = true;
+
+      // TODO 写入 Vuex
+      this.deployingApp = app;
+
+      // 写入开始部署信息
+      this.startDeployInformation = {
+        startTime: this.$day().format("YYYY-MM-DD HH:mm:ss"),
+        hostIP: app.hostIP,
+        core: path.basename(app.applicationCorePath)
+      };
+      this.currentStageDoing = {
+        log: "正在初始化服务端文件",
+        time: this.$day().format("YYYY-MM-DD HH:mm:ss")
+      };
+
+      // 缓存部署参数
+      // TODO 可能会丢失，需要存储进 Vuex
+      this.execParams = {
+        minMemory: "1G",
+        maxMemory: "1G",
+        fileName: path.basename(app.applicationCorePath),
+        applicationCorePath: path.dirname(app.applicationCorePath)
+      };
+
+      console.log(this.execParams);
+      ipcRenderer.send("initialize-server-file", this.execParams);
+    },
+    agreeEula() {
+      this.isNeedConfirmEula = false;
+
+      // 压缩文件参数
+      const dir = path.dirname(this.deployingApp.applicationCorePath);
+      const zipFileName = dir.split("/").pop() + ".zip";
+      const zipResult = path.join(path.resolve(dir, "../"), zipFileName);
+      const data = {
+        waitingForZip: dir,
+        ZipResult: zipResult
+      };
+
+      console.log(data);
+      ipcRenderer.on("zip-application", data);
+    },
+    disagreeEula() {},
+    initializeServerFileListener() {
+      ipcRenderer.on("initialize-finish", () => {
+        this.currentStageDoing = {};
+        this.deployLogs.push({
+          log: "完成初始化服务端",
+          time: this.$day().format("YYYY-MM-DD HH:mm:ss")
+        });
+        this.isNeedConfirmEula = true;
+        // this.initializeServerFileLogs = arg;
+      });
+    },
+    doingLogsListener() {
+      ipcRenderer.on("deploy-current-stage", (event, arg) => {
+        // 写入 currentStageDoing
+        console.log(arg);
+      });
+    },
+    finishedStageListener() {
+      ipcRenderer.on("deploy-finished-stage", (event, arg) => {
+        // push 进 deployLogs
+        console.log(arg);
+      });
     }
   }
 };
