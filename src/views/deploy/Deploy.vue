@@ -21,7 +21,7 @@
             outlined
             hover
           >
-            <v-card-title>{{ item.name }}</v-card-title>
+            <v-card-title>{{ item.applicationName }}</v-card-title>
             <v-divider></v-divider>
             <v-container class="body-2 font-weight-light">
               <v-row>
@@ -29,7 +29,7 @@
                   <v-icon class="mr-3" color="blue" size="22">
                     mdi-server
                   </v-icon>
-                  {{ item.ip }}
+                  {{ item.hostName }} - {{ item.hostIP }}
                 </v-col>
               </v-row>
               <v-row>
@@ -37,16 +37,17 @@
                   <v-icon class="mr-3" color="blue" size="22">
                     mdi-cards-spade
                   </v-icon>
-                  {{ normalizePath(item.applicationDir, item.coreFile) }}
+                  {{ item.applicationCorePath }}
                 </v-col>
               </v-row>
             </v-container>
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary" outlined @click="startDeploy"
-                >开始部署</v-btn
+              <v-btn color="red darken-1" text @click="showConfirmDialog(item)"
+                >删除</v-btn
               >
+              <v-btn color="primary" text @click="startDeploy">开始部署</v-btn>
             </v-card-actions>
           </v-card>
         </v-container>
@@ -239,18 +240,25 @@
       :is-show.sync="isCreateApplicationDialogShow"
       v-on:refresh="fetchApplication"
     ></create-application>
+    <confirm
+      v-if="isConfirmDialogShow"
+      :is-show.sync="isConfirmDialogShow"
+      title="你真的要删除这个应用吗"
+      v-on:agree="deleteApplication(waitingForDelete)"
+      v-on:disagree="cancelConfirm"
+    ></confirm>
   </div>
 </template>
 
 <script>
 import Header from "../../components/core/Header";
+import Confirm from "../../components/core/Confirm";
 import CreateApplication from "./CreateApplication";
-import { resolvePath } from "../../utils/path";
 
 export default {
   name: "Deploy",
 
-  components: { Header, CreateApplication },
+  components: { Header, Confirm, CreateApplication },
 
   created() {
     this.fetchApplication();
@@ -258,9 +266,11 @@ export default {
 
   data: () => ({
     isCreateApplicationDialogShow: false,
+    isConfirmDialogShow: false,
     isDeploying: false,
     reverse: true,
     applications: [],
+    waitingForDelete: {},
     startDeployInformation: {
       time: "15:25 ET",
       hostIP: "127.0.0.1",
@@ -294,14 +304,28 @@ export default {
   }),
 
   methods: {
-    normalizePath(path, file) {
-      return resolvePath(path, file);
-    },
     showCreateApplicationDialog() {
       this.isCreateApplicationDialogShow = true;
     },
+    showConfirmDialog(core) {
+      this.waitingForDelete = core;
+      this.isConfirmDialogShow = true;
+    },
+    cancelConfirm() {
+      this.waitingForDelete = {};
+    },
     async fetchApplication() {
       this.applications = await this.$db.application.find({});
+    },
+    async deleteApplication(app) {
+      await this.$db.application.remove(
+        {
+          _id: app["_id"]
+        },
+        {}
+      );
+      this.waitingForDelete = {};
+      await this.fetchApplication();
     },
     startDeploy() {
       this.isDeploying = true;

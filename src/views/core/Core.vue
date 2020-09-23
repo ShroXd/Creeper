@@ -133,18 +133,18 @@
         </v-expand-transition>
       </v-row>
     </v-container>
-    <ManageCore
+    <manage-core
       v-if="isManageCoreDialogShow"
       :is-show.sync="isManageCoreDialogShow"
       v-on:startDownload="startDownload"
-    ></ManageCore>
-    <Confirm
+    ></manage-core>
+    <confirm
       v-if="isConfirmDialogShow"
-      :isShow.sync="isConfirmDialogShow"
+      :is-show.sync="isConfirmDialogShow"
       title="你真的要删除这个核心吗"
       v-on:agree="deleteCore(waitingForDelete)"
       v-on:disagree="cancelConfirm"
-    ></Confirm>
+    ></confirm>
   </div>
 </template>
 
@@ -268,6 +268,7 @@ export default {
         },
         {}
       );
+      this.waitingForDelete = {};
       await this.fetchCores();
     },
     importCore() {
