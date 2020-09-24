@@ -2,11 +2,14 @@ const path = require("path");
 
 import { generateMiddleware, sendDeployInformation } from "./utils";
 import {
+  cleanLocalOldFiles,
+  // cleanRemoteOldFiles,
   initializeServerFile,
   agreeEula,
   zipApplication,
   connectServer,
-  uploadFile
+  uploadFile,
+  unzipRemoteOldFiles
 } from "./handle";
 
 let middleware = [];
@@ -14,14 +17,21 @@ let middleware = [];
 export async function deployHandler(context) {
   const appBasePath = path.dirname(context.applicationCorePath);
   const appFileName = path.basename(context.applicationCorePath);
+  const localZipAppName = appBasePath.split("/").pop() + ".zip";
   const localZipAppPath = path.join(
     path.resolve(appBasePath, "../"),
-    appBasePath.split("/").pop() + ".zip"
+    localZipAppName
   );
 
   // 初始化处理链
   // TODO 将初始化动态化
-  initializeMiddleware(context, appBasePath, appFileName, localZipAppPath);
+  initializeMiddleware(
+    context,
+    appBasePath,
+    appFileName,
+    localZipAppName,
+    localZipAppPath
+  );
 
   // 执行处理链
   try {
@@ -32,10 +42,10 @@ export async function deployHandler(context) {
         handler.fn(handler.param);
       }
     }
+
+    sendDeployInformation("deploy-success", "部署成功");
   } catch (e) {
     sendDeployInformation("deploy-failure", e || "未知");
-  } finally {
-    sendDeployInformation("deploy-success", "部署成功");
   }
 }
 
@@ -43,8 +53,16 @@ function initializeMiddleware(
   context,
   appBasePath,
   appFileName,
+  localZipAppName,
   localZipAppPath
 ) {
+  middleware.push(
+    generateMiddleware(cleanLocalOldFiles, {
+      appBasePath: appBasePath,
+      appFileName: appFileName
+    })
+  );
+
   middleware.push(
     generateMiddleware(initializeServerFile, {
       minMemory: context.minMemory,
@@ -82,6 +100,13 @@ function initializeMiddleware(
     generateMiddleware(uploadFile, {
       localPath: localZipAppPath,
       remotePath: context.remotePath
+    })
+  );
+
+  middleware.push(
+    generateMiddleware(unzipRemoteOldFiles, {
+      localZipAppName: localZipAppName,
+      remotePath: path.dirname(context.remotePath)
     })
   );
 }

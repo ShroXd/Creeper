@@ -1,4 +1,5 @@
 const fs = require("fs");
+const fsextra = require("fs-extra");
 const path = require("path");
 const exec = require("child_process").exec;
 const compressing = require("compressing");
@@ -7,6 +8,14 @@ const node_ssh = require("node-ssh");
 import { sendDeployInformation } from "./utils";
 
 let SSH = new node_ssh();
+
+export function cleanLocalOldFiles(config) {
+  const dirs = fs.readdirSync(config.appBasePath);
+  dirs.forEach(file => {
+    if (file === config.appFileName) return;
+    fsextra.removeSync(path.resolve(config.appBasePath, file));
+  });
+}
 
 export function initializeServerFile(config) {
   sendDeployInformation("deploy-current-stage", "正在初始化应用");
@@ -77,4 +86,13 @@ export async function uploadFile(config) {
   sendDeployInformation("deploy-current-stage", "正在上传文件至服务器");
   await SSH.putFiles([{ local: config.localPath, remote: config.remotePath }]);
   sendDeployInformation("deploy-finished-stage", "上传成功");
+}
+
+export async function unzipRemoteOldFiles(config) {
+  console.log(config);
+  sendDeployInformation("deploy-current-stage", "正在解压远程文件");
+  await SSH.execCommand(`unzip application.zip && rm -f application.zip`, {
+    cwd: config.remotePath
+  });
+  sendDeployInformation("deploy-finished-stage", "解压成功");
 }

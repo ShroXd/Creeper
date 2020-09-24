@@ -8,7 +8,11 @@
           <v-card-title
             >应用
             <v-spacer></v-spacer>
-            <v-btn color="primary" outlined @click="showCreateApplicationDialog"
+            <v-btn
+              :disabled="isDeploying"
+              color="primary"
+              outlined
+              @click="showCreateApplicationDialog"
               >创建应用</v-btn
             >
           </v-card-title>
@@ -44,10 +48,18 @@
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="red darken-1" text @click="showConfirmDialog(item)"
+              <v-btn
+                :disabled="isDeploying"
+                color="red darken-1"
+                text
+                @click="showConfirmDialog(item)"
                 >删除</v-btn
               >
-              <v-btn color="primary" text @click="startDeploy(item)"
+              <v-btn
+                :disabled="isDeploying"
+                color="primary"
+                text
+                @click="startDeploy(item)"
                 >开始部署</v-btn
               >
             </v-card-actions>
@@ -59,7 +71,9 @@
         <v-container>
           <v-card-title
             >部署日志 <v-spacer> </v-spacer
-            ><v-btn color="primary" outlined>导出日志</v-btn>
+            ><v-btn :disabled="isDeploying" color="primary" outlined
+              >导出日志</v-btn
+            >
           </v-card-title>
           <v-divider></v-divider>
 
@@ -301,13 +315,8 @@ export default {
     isNeedConfirmEula: false,
     applications: [],
     waitingForDelete: {},
-    deployingApp: {},
-    execParams: {},
-    zipResult: "",
-    initializeServerFileLogs: "",
     startDeployInformation: {},
     deployLogs: [],
-    // 正在进行
     currentStageDoing: {},
     finishDeployInformation: {},
     failureDeployInformation: {}
@@ -342,8 +351,22 @@ export default {
       this.isDeploying = true;
       app.minMemory = "1G";
       app.maxMemory = "1G";
-      app.remotePath = "/home/Shroud/testdeploy/1a14256771.zip";
+      app.remotePath = `/home/${app.hostUser}/application.zip`;
+      this.saveDeployInformation(app);
       ipcRenderer.send("deploy-handler", app);
+    },
+    async saveDeployInformation(app) {
+      await this.$db.application.update(
+        {
+          _id: app["_id"]
+        },
+        {
+          $set: {
+            remotePath: app.remotePath
+          }
+        },
+        {}
+      );
     },
     doingLogsListener() {
       ipcRenderer.on("deploy-current-stage", (event, arg) => {
@@ -368,6 +391,7 @@ export default {
       ipcRenderer.on("deploy-success", (event, arg) => {
         this.finishDeployInformation = arg;
         this.currentStageDoing = {};
+        this.isDeploying = false;
         console.log(arg);
       });
     }
