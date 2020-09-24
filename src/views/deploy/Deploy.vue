@@ -143,38 +143,7 @@
             </v-timeline-item>
 
             <v-timeline-item
-              v-if="isNeedConfirmEula"
-              color="green lighten-1"
-              fill-dot
-              left
-              small
-            >
-              <v-card>
-                <v-card-title class="lighten-1">
-                  <h2 class="text-h5 mr-4 font-weight-light">
-                    需要您确认 EULA
-                  </h2>
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-card-text
-                  >#By changing the setting below to TRUE you are indicating
-                  your agreement to our EULA
-                  (https://account.mojang.com/documents/minecraft_eula). #and
-                  also agreeing that tacos are tasty. #Wed Sep 23 11:18:15 CST
-                  2020
-                </v-card-text>
-                <v-divider></v-divider>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn depressed small color="error" @click="disagreeEula"
-                    >不同意</v-btn
-                  >
-                  <v-btn depressed small @click="agreeEula">同意</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-timeline-item>
-
-            <v-timeline-item
+              v-if="currentStageDoing.log"
               class="mb-4"
               icon-color="white"
               color="white"
@@ -277,7 +246,7 @@
                         </v-col>
                         <v-col>
                           <span class="text-body-1 font-weight-regular">
-                            {{ failureDeployInformation.reason }}
+                            {{ failureDeployInformation.log }}
                           </span>
                         </v-col>
                       </v-row>
@@ -309,7 +278,6 @@
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import CreateApplication from "./CreateApplication";
-import path from "path";
 import { ipcRenderer } from "electron";
 
 export default {
@@ -319,9 +287,9 @@ export default {
 
   created() {
     this.fetchApplication();
-    this.initializeServerFileListener();
     this.doingLogsListener();
     this.finishedStageListener();
+    this.failureListener();
   },
 
   data: () => ({
@@ -371,69 +339,26 @@ export default {
 
     startDeploy(app) {
       this.isDeploying = true;
-
-      // TODO 写入 Vuex
-      this.deployingApp = app;
-
-      // 写入开始部署信息
-      this.startDeployInformation = {
-        startTime: this.$day().format("YYYY-MM-DD HH:mm:ss"),
-        hostIP: app.hostIP,
-        core: path.basename(app.applicationCorePath)
-      };
-      this.currentStageDoing = {
-        log: "正在初始化服务端文件",
-        time: this.$day().format("YYYY-MM-DD HH:mm:ss")
-      };
-
-      // 缓存部署参数
-      // TODO 可能会丢失，需要存储进 Vuex
-      this.execParams = {
-        minMemory: "1G",
-        maxMemory: "1G",
-        fileName: path.basename(app.applicationCorePath),
-        applicationCorePath: path.dirname(app.applicationCorePath)
-      };
-
-      console.log(this.execParams);
-      ipcRenderer.send("initialize-server-file", this.execParams);
-    },
-    agreeEula() {
-      this.isNeedConfirmEula = false;
-
-      // 压缩文件参数
-      const dir = path.dirname(this.deployingApp.applicationCorePath);
-      const zipFileName = dir.split("/").pop() + ".zip";
-      const zipResult = path.join(path.resolve(dir, "../"), zipFileName);
-      const data = {
-        waitingForZip: dir,
-        ZipResult: zipResult
-      };
-
-      console.log(data);
-      ipcRenderer.on("zip-application", data);
-    },
-    disagreeEula() {},
-    initializeServerFileListener() {
-      ipcRenderer.on("initialize-finish", () => {
-        this.currentStageDoing = {};
-        this.deployLogs.push({
-          log: "完成初始化服务端",
-          time: this.$day().format("YYYY-MM-DD HH:mm:ss")
-        });
-        this.isNeedConfirmEula = true;
-        // this.initializeServerFileLogs = arg;
-      });
+      app.minMemory = "1G";
+      app.maxMemory = "1G";
+      app.remotePath = "/home/Shroud/testdeploy/1a14256771.zip";
+      ipcRenderer.send("deploy-handler", app);
     },
     doingLogsListener() {
       ipcRenderer.on("deploy-current-stage", (event, arg) => {
-        // 写入 currentStageDoing
+        this.currentStageDoing = arg;
         console.log(arg);
       });
     },
     finishedStageListener() {
       ipcRenderer.on("deploy-finished-stage", (event, arg) => {
-        // push 进 deployLogs
+        this.deployLogs.push(arg);
+        console.log(arg);
+      });
+    },
+    failureListener() {
+      ipcRenderer.on("deploy-failure", (event, arg) => {
+        this.failureDeployInformation = arg;
         console.log(arg);
       });
     }
