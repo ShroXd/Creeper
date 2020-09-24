@@ -13,7 +13,6 @@ ipcMain.on("connect", (e, param) => {
 ipcMain.on("download", (e, param) => {
   downloader(param, win).then(() => {
     win.send("download-finished");
-    console.log("完成下载");
   });
 });
 

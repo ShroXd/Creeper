@@ -40,7 +40,6 @@ export function initializeServerFile(config) {
 }
 
 export function agreeEula(basePath) {
-  console.log(basePath);
   const eulaPath = path.resolve(basePath, "eula.txt");
   const eula = fs.openSync(eulaPath, "w");
   fs.writeFileSync(eula, "eula=true", "utf8");
@@ -67,7 +66,6 @@ export function zipApplication(config) {
 
 export function connectServer(loginInfo) {
   sendDeployInformation("deploy-current-stage", "正在连接服务器");
-  console.log(loginInfo);
 
   return new Promise((resolve, reject) => {
     SSH.connect(loginInfo)
@@ -82,14 +80,12 @@ export function connectServer(loginInfo) {
 }
 
 export async function uploadFile(config) {
-  console.log(config);
   sendDeployInformation("deploy-current-stage", "正在上传文件至服务器");
   await SSH.putFiles([{ local: config.localPath, remote: config.remotePath }]);
   sendDeployInformation("deploy-finished-stage", "上传成功");
 }
 
 export async function unzipRemoteOldFiles(config) {
-  console.log(config);
   sendDeployInformation("deploy-current-stage", "正在解压远程文件");
   await SSH.execCommand(`unzip application.zip && rm -f application.zip`, {
     cwd: config.remotePath

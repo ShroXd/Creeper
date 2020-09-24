@@ -1,7 +1,11 @@
 <template>
   <v-app id="inspire">
     <drawer></drawer>
-    <v-main> <router-view /> </v-main>
+    <v-main>
+      <keep-alive :include="['Deploy', 'Core']">
+        <router-view></router-view>
+      </keep-alive>
+    </v-main>
   </v-app>
 </template>
 

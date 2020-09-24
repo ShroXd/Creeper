@@ -23,7 +23,7 @@ const routes = [
       },
       {
         path: "/deploy",
-        name: "Game",
+        name: "Deploy",
         component: () => import("../views/deploy/Deploy.vue")
       },
       {

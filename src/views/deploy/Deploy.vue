@@ -371,20 +371,17 @@ export default {
     doingLogsListener() {
       ipcRenderer.on("deploy-current-stage", (event, arg) => {
         this.currentStageDoing = arg;
-        console.log(arg);
       });
     },
     finishedStageListener() {
       ipcRenderer.on("deploy-finished-stage", (event, arg) => {
         this.deployLogs.push(arg);
-        console.log(arg);
       });
     },
     failureListener() {
       ipcRenderer.on("deploy-failure", (event, arg) => {
         this.failureDeployInformation = arg;
         this.currentStageDoing = {};
-        console.log(arg);
       });
     },
     successListener() {
@@ -392,7 +389,6 @@ export default {
         this.finishDeployInformation = arg;
         this.currentStageDoing = {};
         this.isDeploying = false;
-        console.log(arg);
       });
     }
   }

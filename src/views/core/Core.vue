@@ -200,7 +200,6 @@ export default {
     async fetchCores() {
       // 获取下载信息
       this.cores = await this.$db.cores.find({});
-      console.log(this.cores);
     },
     async startDownload(param) {
       this.isDownloading = true;
