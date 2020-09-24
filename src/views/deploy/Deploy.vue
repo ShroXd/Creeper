@@ -290,6 +290,7 @@ export default {
     this.doingLogsListener();
     this.finishedStageListener();
     this.failureListener();
+    this.successListener();
   },
 
   data: () => ({
@@ -359,6 +360,14 @@ export default {
     failureListener() {
       ipcRenderer.on("deploy-failure", (event, arg) => {
         this.failureDeployInformation = arg;
+        this.currentStageDoing = {};
+        console.log(arg);
+      });
+    },
+    successListener() {
+      ipcRenderer.on("deploy-success", (event, arg) => {
+        this.finishDeployInformation = arg;
+        this.currentStageDoing = {};
         console.log(arg);
       });
     }

@@ -4,7 +4,7 @@ import { win } from "../background";
 import { connect } from "./ssh";
 import { downloader } from "./downloader";
 import { copy, mkdir, open, save } from "./fs";
-import { deployHandler } from "./deploy";
+import { deployHandler } from "../deploy/deploy";
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);

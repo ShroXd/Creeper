@@ -1,68 +1,14 @@
-const exec = require("child_process").exec;
-import { win } from "../background";
-const compressing = require("compressing");
-const path = require("path");
 const fs = require("fs");
-const dayjs = require("dayjs");
+const path = require("path");
+const exec = require("child_process").exec;
+const compressing = require("compressing");
 const node_ssh = require("node-ssh");
+
+import { sendDeployInformation } from "./utils";
 
 let SSH = new node_ssh();
 
-export async function deployHandler(context) {
-  console.log(context);
-  const appBasePath = path.dirname(context.applicationCorePath);
-  const appFileName = path.basename(context.applicationCorePath);
-  const localZipAppPath = path.join(
-    path.resolve(appBasePath, "../"),
-    appBasePath.split("/").pop() + ".zip"
-  );
-
-  // 初始化应用
-  try {
-    //TODO 清理文件
-
-    await initializeServerFile({
-      minMemory: context.minMemory,
-      maxMemory: context.maxMemory,
-      filePath: appBasePath,
-      fileName: appFileName
-    });
-
-    // 自动同意 eula
-    agreeEula(path.dirname(context.applicationCorePath));
-
-    // 压缩应用
-    await zipApplication({
-      waitingForZip: appBasePath,
-      zipResult: localZipAppPath
-    });
-
-    // 连接服务器
-    await connectServer({
-      host: context.hostIP,
-      port: context.hostPort,
-      username: context.hostUser,
-      password: context.hostPassword
-    });
-
-    // 上传文件
-    await uploadFile({
-      localPath: localZipAppPath,
-      remotePath: context.remotePath
-    });
-  } catch (e) {
-    sendDeployInformation("deploy-failure", e || "未知");
-  }
-}
-
-function sendDeployInformation(event, log) {
-  win.send(event, {
-    log: log,
-    time: dayjs().format("YYYY-MM-DD HH:mm:ss")
-  });
-}
-
-function initializeServerFile(config) {
+export function initializeServerFile(config) {
   sendDeployInformation("deploy-current-stage", "正在初始化应用");
 
   return new Promise((resolve, reject) => {
@@ -84,7 +30,7 @@ function initializeServerFile(config) {
   });
 }
 
-function agreeEula(basePath) {
+export function agreeEula(basePath) {
   console.log(basePath);
   const eulaPath = path.resolve(basePath, "eula.txt");
   const eula = fs.openSync(eulaPath, "w");
@@ -94,7 +40,7 @@ function agreeEula(basePath) {
   sendDeployInformation("deploy-finished-stage", "已同意 EULA 文件");
 }
 
-function zipApplication(config) {
+export function zipApplication(config) {
   sendDeployInformation("deploy-current-stage", "正在打包应用");
 
   return new Promise((resolve, reject) => {
@@ -110,7 +56,7 @@ function zipApplication(config) {
   });
 }
 
-function connectServer(loginInfo) {
+export function connectServer(loginInfo) {
   sendDeployInformation("deploy-current-stage", "正在连接服务器");
   console.log(loginInfo);
 
@@ -126,7 +72,7 @@ function connectServer(loginInfo) {
   });
 }
 
-async function uploadFile(config) {
+export async function uploadFile(config) {
   console.log(config);
   sendDeployInformation("deploy-current-stage", "正在上传文件至服务器");
   await SSH.putFiles([{ local: config.localPath, remote: config.remotePath }]);
