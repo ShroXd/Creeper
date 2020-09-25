@@ -92,3 +92,15 @@ export async function unzipRemoteOldFiles(config) {
   });
   sendDeployInformation("deploy-finished-stage", "解压成功");
 }
+
+export async function runClient(config) {
+  await SSH.exec(`java -Xmx1G -Xms1G -jar ${config.clientJarFileName}`, [""], {
+    cwd: config.remoteClientPath,
+    onStdout(out) {
+      sendDeployInformation("terminal-log", out);
+    },
+    onStdErr(err) {
+      sendDeployInformation("terminal-log", err);
+    }
+  });
+}

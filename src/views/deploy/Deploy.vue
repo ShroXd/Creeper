@@ -65,7 +65,7 @@
             <v-divider></v-divider>
             <v-card-actions>
               <v-btn color="teal darken-1" text>
-                远程终端
+                添加模组
               </v-btn>
               <v-spacer></v-spacer>
               <v-btn
@@ -89,13 +89,30 @@
       <v-divider vertical></v-divider>
       <v-col>
         <v-container>
-          <v-card-title
-            >部署日志 <v-spacer> </v-spacer
-            ><v-btn :disabled="isDeploying" color="primary" outlined
+          <v-card-title>
+            部署日志
+            <v-spacer> </v-spacer
+            ><v-btn
+              :disabled="isDeploying"
+              color="primary"
+              outlined
+              @click="exportLogs"
               >导出日志</v-btn
             >
           </v-card-title>
           <v-divider></v-divider>
+
+          <v-expand-transition>
+            <v-card
+              class="overflow-y-auto"
+              max-height="400"
+              v-show="isTerminalLogsShow"
+            >
+              <v-card-text>
+                {{ terminalLogs }}
+              </v-card-text>
+            </v-card>
+          </v-expand-transition>
 
           <v-timeline :reverse="reverse" dense>
             <v-timeline-item
@@ -299,6 +316,7 @@
       v-on:refresh="fetchApplication"
       :title="dialogTitle"
       :mode="mode"
+      :steps="steps"
     ></create-application>
     <confirm
       v-if="isConfirmDialogShow"
@@ -327,6 +345,7 @@ export default {
     this.finishedStageListener();
     this.failureListener();
     this.successListener();
+    this.terminalLogsListener();
   },
 
   data: () => ({
@@ -335,6 +354,7 @@ export default {
     isCreateApplicationDialogShow: false,
     isConfirmDialogShow: false,
     isDeploying: false,
+    isTerminalLogsShow: false,
     reverse: true,
     isNeedConfirmEula: false,
     applications: [],
@@ -343,23 +363,30 @@ export default {
     deployLogs: [],
     currentStageDoing: {},
     finishDeployInformation: {},
-    failureDeployInformation: {}
+    failureDeployInformation: {},
+    terminalLogs: [],
+    steps: []
   }),
 
   methods: {
     showCreateApplicationDialog() {
       this.dialogTitle = "创建应用";
       this.mode = "";
+      this.steps = ["name", "host", "core"];
       this.isCreateApplicationDialogShow = true;
     },
     showImportIntegratedPackageDialog() {
       this.dialogTitle = "导入整合包";
       this.mode = "package";
+      this.steps = ["name", "host", "jar"];
       this.isCreateApplicationDialogShow = true;
     },
     showConfirmDialog(core) {
       this.waitingForDelete = core;
       this.isConfirmDialogShow = true;
+    },
+    exportLogs() {
+      this.isTerminalLogsShow = !this.isTerminalLogsShow;
     },
     cancelConfirm() {
       this.waitingForDelete = {};
@@ -383,8 +410,10 @@ export default {
       app.minMemory = "1G";
       app.maxMemory = "1G";
       app.remotePath = `/home/${app.hostUser}/application.zip`;
-      this.saveDeployInformation(app);
-      ipcRenderer.send("deploy-handler", app);
+
+      console.log(app);
+      // this.saveDeployInformation(app);
+      // ipcRenderer.send("deploy-handler", app);
     },
     async saveDeployInformation(app) {
       await this.$db.application.update(
@@ -420,6 +449,12 @@ export default {
         this.finishDeployInformation = arg;
         this.currentStageDoing = {};
         this.isDeploying = false;
+      });
+    },
+    terminalLogsListener() {
+      ipcRenderer.on("terminal-log", (event, arg) => {
+        this.terminalLogs.push(arg);
+        console.log(arg);
       });
     }
   }

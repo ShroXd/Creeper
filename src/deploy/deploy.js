@@ -9,7 +9,8 @@ import {
   zipApplication,
   connectServer,
   uploadFile,
-  unzipRemoteOldFiles
+  unzipRemoteOldFiles,
+  runClient
 } from "./handle";
 
 let middleware = [];
@@ -107,6 +108,13 @@ function initializeMiddleware(
     generateMiddleware(unzipRemoteOldFiles, {
       localZipAppName: localZipAppName,
       remotePath: path.dirname(context.remotePath)
+    })
+  );
+
+  middleware.push(
+    generateMiddleware(runClient, {
+      clientJarFileName: "",
+      remoteClientPath: path.dirname(context.remotePath)
     })
   );
 }

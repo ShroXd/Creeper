@@ -7,7 +7,7 @@
         </v-card-title>
 
         <v-card-text>
-          <steps :step-titles="createApplicationSteps">
+          <steps :step-titles="steps">
             <template v-slot:name>
               <v-text-field
                 v-model="applicationName"
@@ -28,14 +28,19 @@
                 @change="fetchHosts"
               ></v-select>
             </template>
-            <template v-if="mode === 'package'" v-slot:core>
+            <template v-if="mode === 'package'" v-slot:jar>
               <v-btn
                 v-show="host.hostIP"
                 color="primary"
                 text
                 @click="selectPackage"
+                v-if="packagePath === ''"
                 >选择整合包</v-btn
               >
+              <div v-else>
+                <div class="dir-title">整合包路径：</div>
+                {{ packagePath }}
+              </div>
             </template>
             <template v-else v-slot:core>
               <v-select
@@ -88,7 +93,8 @@ export default {
   props: {
     isShow: Boolean,
     mode: String,
-    title: String
+    title: String,
+    steps: Array
   },
 
   components: {
@@ -139,7 +145,6 @@ export default {
         hostPassword: this.host.hostPassword
       };
       this.mode === "package" ? (data.type = "package") : (data.type = "core");
-
       await this.$db.application.insert(data);
       this.hideDialog();
     },
