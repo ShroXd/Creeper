@@ -9,6 +9,14 @@
             >应用
             <v-spacer></v-spacer>
             <v-btn
+              class="mr-3"
+              :disabled="isDeploying"
+              color="primary"
+              outlined
+              @click="showImportIntegratedPackageDialog"
+              >导入整合包</v-btn
+            >
+            <v-btn
               :disabled="isDeploying"
               color="primary"
               outlined
@@ -25,7 +33,16 @@
             outlined
             hover
           >
-            <v-card-title>{{ item.applicationName }}</v-card-title>
+            <v-row align="center">
+              <v-card-title class="ml-3">{{
+                item.applicationName
+              }}</v-card-title>
+              <v-spacer></v-spacer>
+              <v-chip class="mr-7" color="primary" outlined pill>
+                <v-icon left>mdi-beer</v-icon>
+                {{ item.type }}
+              </v-chip>
+            </v-row>
             <v-divider></v-divider>
             <v-container class="body-2 font-weight-light">
               <v-row>
@@ -47,6 +64,9 @@
             </v-container>
             <v-divider></v-divider>
             <v-card-actions>
+              <v-btn color="teal darken-1" text>
+                远程终端
+              </v-btn>
               <v-spacer></v-spacer>
               <v-btn
                 :disabled="isDeploying"
@@ -277,6 +297,8 @@
       v-if="isCreateApplicationDialogShow"
       :is-show.sync="isCreateApplicationDialogShow"
       v-on:refresh="fetchApplication"
+      :title="dialogTitle"
+      :mode="mode"
     ></create-application>
     <confirm
       v-if="isConfirmDialogShow"
@@ -308,6 +330,8 @@ export default {
   },
 
   data: () => ({
+    dialogTitle: "",
+    mode: "",
     isCreateApplicationDialogShow: false,
     isConfirmDialogShow: false,
     isDeploying: false,
@@ -324,6 +348,13 @@ export default {
 
   methods: {
     showCreateApplicationDialog() {
+      this.dialogTitle = "创建应用";
+      this.mode = "";
+      this.isCreateApplicationDialogShow = true;
+    },
+    showImportIntegratedPackageDialog() {
+      this.dialogTitle = "导入整合包";
+      this.mode = "package";
       this.isCreateApplicationDialogShow = true;
     },
     showConfirmDialog(core) {

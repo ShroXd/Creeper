@@ -65,6 +65,19 @@ ipcMain.on("open-jar-file-dialog", () => {
     });
 });
 
+ipcMain.on("open-zip-file-dialog", () => {
+  dialog
+    .showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Zip", extensions: ["zip"] }]
+    })
+    .then(files => {
+      if (files) {
+        win.send("selected-zip", files);
+      }
+    });
+});
+
 ipcMain.on("deploy-handler", (e, param) => {
   deployHandler(param);
 });

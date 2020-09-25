@@ -3,7 +3,7 @@
     <v-dialog v-model="isShow" persistent width="500">
       <v-card>
         <v-card-title class="headline grey lighten-2">
-          创建应用
+          {{ title }}
         </v-card-title>
 
         <v-card-text>
@@ -28,7 +28,16 @@
                 @change="fetchHosts"
               ></v-select>
             </template>
-            <template v-slot:core>
+            <template v-if="mode === 'package'" v-slot:core>
+              <v-btn
+                v-show="host.hostIP"
+                color="primary"
+                text
+                @click="selectPackage"
+                >选择整合包</v-btn
+              >
+            </template>
+            <template v-else v-slot:core>
               <v-select
                 v-show="host.hostIP"
                 :items="cores"
@@ -51,7 +60,7 @@
             取消
           </v-btn>
           <v-btn
-            :disabled="core === ''"
+            :disabled="core === '' && packagePath === ''"
             :color="selectedPath ? '' : 'primary'"
             text
             @click="selectDirectory"
@@ -78,6 +87,7 @@ export default {
 
   props: {
     isShow: Boolean,
+    mode: String,
     title: String
   },
 
@@ -89,6 +99,7 @@ export default {
     this.fetchHosts();
     this.fetchCores();
     this.selectDirectoryListener();
+    this.selectPackageListener();
   },
 
   data: () => ({
@@ -102,12 +113,16 @@ export default {
     hosts: [],
     core: "",
     cores: [],
-    selectedPath: ""
+    selectedPath: "",
+    packagePath: ""
   }),
 
   methods: {
     async selectDirectory() {
       await ipcRenderer.send("open-directory-dialog");
+    },
+    async selectPackage() {
+      await ipcRenderer.send("open-zip-file-dialog");
     },
     async confirm() {
       const [applicationFolderPath, applicationCorePath] = this.normalizeData();
@@ -123,12 +138,16 @@ export default {
         hostUser: this.host.hostUser,
         hostPassword: this.host.hostPassword
       };
-      await this.$db.application.insert(data);
+      this.mode === "package" ? (data.type = "package") : (data.type = "core");
 
+      await this.$db.application.insert(data);
       this.hideDialog();
     },
     normalizeData() {
-      const coreFileName = path.basename(this.core);
+      const coreFileName =
+        this.mode === "package"
+          ? path.basename(this.packagePath)
+          : path.basename(this.core);
       const applicationFolderPath = path.resolve(
         this.selectedPath,
         cryptoRandomString({ length: 10 })
@@ -164,6 +183,13 @@ export default {
       ipcRenderer.on("selected-dirname", (event, arg) => {
         if (arg.filePaths.length !== 0) {
           this.selectedPath = arg.filePaths[0];
+        }
+      });
+    },
+    selectPackageListener() {
+      ipcRenderer.on("selected-zip", (event, arg) => {
+        if (arg.filePaths.length !== 0) {
+          this.packagePath = arg.filePaths[0];
         }
       });
     }
