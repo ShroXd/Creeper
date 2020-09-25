@@ -53,11 +53,11 @@ export default {
         title: "模组",
         to: "/mod"
       },
-      {
-        icon: "mdi-code-tags",
-        title: "脚本",
-        to: "/script"
-      },
+      // {
+      //   icon: "mdi-code-tags",
+      //   title: "脚本",
+      //   to: "/script"
+      // },
       {
         icon: "mdi-application",
         title: "部署",

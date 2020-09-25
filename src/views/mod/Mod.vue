@@ -24,10 +24,21 @@
     </Header>
     <v-divider></v-divider>
     <v-container fluid>
+      <v-card-title>
+        <v-text-field
+          v-model="modSearch"
+          append-icon="mdi-magnify"
+          label="搜索模组"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-card-title>
+      <v-divider></v-divider>
       <v-data-table
         v-model="selected"
         item-key="_id"
         :headers="tableHeaders"
+        :search="modSearch"
         :items="mods"
         :items-per-page="10"
         show-select
@@ -44,7 +55,7 @@
     <ManageMod
       v-if="isManageModDialogShow"
       :isShow.sync="isManageModDialogShow"
-      :v-on:refresh="fetchModData"
+      v-on:refresh="fetchModData"
       title="导入模组"
     ></ManageMod>
   </div>
@@ -70,6 +81,7 @@ export default {
   data: () => ({
     isManageModDialogShow: false,
     isConfirmDialogShow: false,
+    modSearch: "",
     tableHeaders: [
       {
         text: "名称",
