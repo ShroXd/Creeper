@@ -60,6 +60,11 @@ export default {
       // },
       {
         icon: "mdi-application",
+        title: "应用",
+        to: "/application"
+      },
+      {
+        icon: "mdi-apple-icloud",
         title: "部署",
         to: "/deploy"
       }

@@ -42,4 +42,10 @@ db.application = new Datastore({
   filename: basePath + "application"
 });
 
+db.appMods = new Datastore({
+  autoload: true,
+  timestampData: true,
+  filename: basePath + "/" + "appMods"
+});
+
 Vue.prototype.$db = db;

@@ -13,7 +13,7 @@
               :disabled="isDeploying"
               color="primary"
               outlined
-              @click="showImportIntegratedPackageDialog"
+              @click="showImportPackageDialog"
               >导入整合包</v-btn
             >
             <v-btn
@@ -318,6 +318,11 @@
       :mode="mode"
       :steps="steps"
     ></create-application>
+    <manage-package
+      v-if="isImportPackageDialogShow"
+      :is-show.sync="isImportPackageDialogShow"
+      v-on:refresh="fetchApplication"
+    ></manage-package>
     <confirm
       v-if="isConfirmDialogShow"
       :is-show.sync="isConfirmDialogShow"
@@ -332,12 +337,13 @@
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import CreateApplication from "./CreateApplication";
+import ManagePackage from "./ManagePackage";
 import { ipcRenderer } from "electron";
 
 export default {
   name: "Deploy",
 
-  components: { Header, Confirm, CreateApplication },
+  components: { Header, Confirm, CreateApplication, ManagePackage },
 
   created() {
     this.fetchApplication();
@@ -352,6 +358,7 @@ export default {
     dialogTitle: "",
     mode: "",
     isCreateApplicationDialogShow: false,
+    isImportPackageDialogShow: false,
     isConfirmDialogShow: false,
     isDeploying: false,
     isTerminalLogsShow: false,
@@ -375,11 +382,8 @@ export default {
       this.steps = ["name", "host", "core"];
       this.isCreateApplicationDialogShow = true;
     },
-    showImportIntegratedPackageDialog() {
-      this.dialogTitle = "导入整合包";
-      this.mode = "package";
-      this.steps = ["name", "host", "jar"];
-      this.isCreateApplicationDialogShow = true;
+    showImportPackageDialog() {
+      this.isImportPackageDialogShow = true;
     },
     showConfirmDialog(core) {
       this.waitingForDelete = core;

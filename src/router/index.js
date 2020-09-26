@@ -22,19 +22,25 @@ const routes = [
         component: () => import("../views/core/Core.vue")
       },
       {
-        path: "/deploy",
-        name: "Deploy",
-        component: () => import("../views/deploy/Deploy.vue")
-      },
-      {
         path: "/mod",
         name: "Mod",
         component: () => import("../views/mod/Mod.vue")
       },
       {
+        path: "/deploy",
+        name: "Deploy",
+        component: () => import("../views/deploy/Deploy.vue")
+      },
+
+      {
         path: "/script",
         name: "Script",
         component: () => import("../views/script/Script.vue")
+      },
+      {
+        path: "/application",
+        name: "Application",
+        component: () => import("../views/application/Application.vue")
       }
     ]
   }
