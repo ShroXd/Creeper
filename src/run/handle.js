@@ -4,7 +4,6 @@ const path = require("path");
 const exec = require("child_process").exec;
 const compressing = require("compressing");
 const node_ssh = require("node-ssh");
-const cryptoRandomString = require("crypto-random-string");
 
 import { sendDeployInformation } from "./utils";
 
@@ -54,11 +53,7 @@ export function addMods(config) {
     sendDeployInformation("deploy-finished-stage", "无模组需要添加");
   }
 
-  const basePath = path.join(
-    config.appBasePath,
-    "mods",
-    cryptoRandomString({ length: 10 })
-  );
+  const basePath = path.join(config.appBasePath, "mods", "mcmd-mods");
   config.mods.forEach(mod => {
     const modFileName = path.basename(mod.modFilePath);
 

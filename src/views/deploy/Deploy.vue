@@ -282,7 +282,7 @@ export default {
 
   components: { Header, Confirm },
 
-  created() {
+  mounted() {
     this.fetchApplication();
     this.doingLogsListener();
     this.finishedStageListener();
@@ -330,7 +330,7 @@ export default {
     async startDeploy(app) {
       this.isDeploying = true;
       this.resetLogsHistory();
-      app.remotePath = `/home/${app.hostUser}/application.zip`;
+      app.remotePath = `/home/${app.hostUser}/Minecraft/application.zip`;
 
       const mods = await this.$db.appMods.find({
         appId: app["_id"]

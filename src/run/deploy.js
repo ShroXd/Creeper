@@ -20,6 +20,21 @@ import {
 let middleware = [];
 
 export async function deployHandler(context, mods) {
+  // 初始化处理链
+  middlewareFactory(context, mods);
+
+  // 执行处理链
+  try {
+    for (let handler of middleware) {
+      await handler.fn(handler.param);
+    }
+    sendDeployInformation("deploy-success", "部署成功");
+  } catch (e) {
+    sendDeployInformation("deploy-failure", e || "未知");
+  }
+}
+
+function middlewareFactory(context, mods) {
   const [
     appBasePath,
     appFileName,
@@ -32,28 +47,28 @@ export async function deployHandler(context, mods) {
   console.log("localZipAppName: " + localZipAppName);
   console.log("localZipAppPath: " + localZipAppPath);
   console.log(mods);
-
-  // 初始化处理链
-  // TODO 将初始化动态化
-  if (context.type === "core") {
-    initializeCoreDeployMiddleware(
-      context,
-      mods,
-      appBasePath,
-      appFileName,
-      localZipAppName,
-      localZipAppPath
-    );
-  }
-
-  // 执行处理链
-  try {
-    for (let handler of middleware) {
-      await handler.fn(handler.param);
-    }
-    sendDeployInformation("deploy-success", "部署成功");
-  } catch (e) {
-    sendDeployInformation("deploy-failure", e || "未知");
+  switch (context.type) {
+    case "core":
+      initializeCoreDeployMiddleware(
+        context,
+        mods,
+        appBasePath,
+        appFileName,
+        localZipAppName,
+        localZipAppPath
+      );
+      break;
+    case "package":
+      initializePackageDeployMiddleware(
+        context,
+        mods,
+        appBasePath,
+        localZipAppPath
+      );
+      break;
+    default:
+      sendDeployInformation("deploy-failure", "暂不支持部署");
+      break;
   }
 }
 
@@ -81,16 +96,7 @@ function initializeCoreDeployMiddleware(
     })
   );
 
-  middleware.push(
-    generateMiddleware(addMods, {
-      appBasePath: appBasePath,
-      mods: mods
-    })
-  );
-
-  middleware.push(
-    generateMiddleware(agreeEula, path.dirname(context.applicationCorePath))
-  );
+  serverProcessing(appBasePath, mods);
 
   middleware.push(
     generateMiddleware(zipApplication, {
@@ -99,6 +105,51 @@ function initializeCoreDeployMiddleware(
     })
   );
 
+  uploadServer(context, localZipAppPath);
+
+  middleware.push(
+    generateMiddleware(unzipRemoteOldFiles, {
+      remoteDir: path.dirname(context.remotePath)
+    })
+  );
+}
+
+function initializePackageDeployMiddleware(
+  context,
+  mods,
+  appBasePath,
+  localZipAppPath
+) {
+  serverProcessing(appBasePath, mods);
+
+  middleware.push(
+    generateMiddleware(zipApplication, {
+      waitingForZip: appBasePath,
+      zipResult: localZipAppPath
+    })
+  );
+
+  uploadServer(context, localZipAppPath);
+
+  middleware.push(
+    generateMiddleware(unzipRemoteOldFiles, {
+      remoteDir: path.dirname(context.remotePath)
+    })
+  );
+}
+
+function serverProcessing(appBasePath, mods) {
+  middleware.push(
+    generateMiddleware(addMods, {
+      appBasePath: appBasePath,
+      mods: mods
+    })
+  );
+
+  middleware.push(generateMiddleware(agreeEula, appBasePath));
+}
+
+function uploadServer(context, localZipAppPath) {
   middleware.push(
     generateMiddleware(connectServer, {
       host: context.hostIP,
@@ -112,12 +163,6 @@ function initializeCoreDeployMiddleware(
     generateMiddleware(uploadFile, {
       localPath: localZipAppPath,
       remotePath: context.remotePath
-    })
-  );
-
-  middleware.push(
-    generateMiddleware(unzipRemoteOldFiles, {
-      remoteDir: path.dirname(context.remotePath)
     })
   );
 }
