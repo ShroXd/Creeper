@@ -12,10 +12,10 @@
               class="mr-3"
               color="primary"
               outlined
-              @click="showImportPackageDialog"
+              @click="showManagePackageDialog"
               >导入整合包</v-btn
             >
-            <v-btn color="primary" outlined @click="showCreateApplicationDialog"
+            <v-btn color="primary" outlined @click="showManagePureCoreDialog"
               >创建应用</v-btn
             >
           </v-card-title>
@@ -25,6 +25,7 @@
             min-height="200"
             v-for="(item, index) in applications"
             :key="index"
+            :elevation="item === currentApplication ? 14 : 0"
             outlined
             hover
           >
@@ -53,7 +54,7 @@
                   <v-icon class="mr-3" color="blue" size="22">
                     mdi-cards-spade
                   </v-icon>
-                  {{ item.applicationCorePath }}
+                  {{ item.applicationCorePath || item.packageJarPath }}
                 </v-col>
               </v-row>
             </v-container>
@@ -73,22 +74,10 @@
       <v-divider vertical></v-divider>
       <v-col>
         <v-container>
-          <v-row align="center">
+          <v-row class="mb-1" align="center">
             <v-card-title>
               模组
             </v-card-title>
-            <v-spacer></v-spacer>
-            <v-col class="mr-3" cols="6">
-              <v-text-field
-                ref="search"
-                v-model="searchMods"
-                full-width
-                hide-details
-                label="搜索模组"
-                single-line
-                dense
-              ></v-text-field
-            ></v-col>
           </v-row>
           <v-divider></v-divider>
           <v-row class="ps-3">
@@ -104,6 +93,9 @@
               {{ mod.modName }} - {{ mod.gameVersion }}
               <v-icon right>mdi-delete</v-icon>
             </v-chip>
+            <div class="my-5 ml-2" v-if="applicationMods.length === 0">
+              暂无数据
+            </div>
           </v-row>
           <v-divider></v-divider>
 
@@ -120,15 +112,25 @@
               {{ mod.modName }} - {{ mod.gameVersion }}
               <v-icon class="ml-2">mdi-plus</v-icon>
             </v-chip>
+            <div class="my-5 ml-2" v-if="availableMods.length === 0">
+              暂无数据
+            </div>
           </v-row>
         </v-container>
       </v-col>
     </v-row>
     <manage-package
-      v-if="isImportPackageDialogShow"
-      :is-show.sync="isImportPackageDialogShow"
+      v-if="isManagePackageDialogShow"
+      :is-show.sync="isManagePackageDialogShow"
       v-on:refresh="fetchApplication"
     ></manage-package>
+    <manage-pure-core
+      v-if="isManagePureCoreDialogShow"
+      :is-show.sync="isManagePureCoreDialogShow"
+      v-on:refresh="fetchApplication"
+      :title="managePureCoreTitle"
+      :mode="managePureCoreMode"
+    ></manage-pure-core>
     <confirm
       v-if="isConfirmDialogShow"
       :is-show.sync="isConfirmDialogShow"
@@ -143,11 +145,12 @@
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
 import ManagePackage from "./ManagePackage";
+import ManagePureCore from "./ManagePureCore";
 
 export default {
   name: "Application",
 
-  components: { Header, Confirm, ManagePackage },
+  components: { Header, Confirm, ManagePackage, ManagePureCore },
 
   created() {
     this.fetchApplication();
@@ -159,23 +162,27 @@ export default {
 
   data: () => ({
     isModify: false,
-    isImportPackageDialogShow: false,
-    isCreateApplicationDialogShow: false,
+    isManagePackageDialogShow: false,
+    isManagePureCoreDialogShow: false,
     isConfirmDialogShow: false,
     applications: [],
     waitingForDelete: {},
     currentApplication: {},
     searchMods: "",
     availableMods: [],
-    applicationMods: []
+    applicationMods: [],
+    managePureCoreTitle: "创建应用",
+    managePureCoreMode: "",
+    managePackageTitle: "导入整合包",
+    managePackageMode: ""
   }),
 
   methods: {
-    showImportPackageDialog() {
-      this.isImportPackageDialogShow = true;
+    showManagePackageDialog() {
+      this.isManagePackageDialogShow = true;
     },
-    showCreateApplicationDialog() {
-      this.isCreateApplicationDialogShow = true;
+    showManagePureCoreDialog() {
+      this.isManagePureCoreDialogShow = true;
     },
     showConfirmDialog(core) {
       this.waitingForDelete = core;
@@ -214,6 +221,8 @@ export default {
       await this.fetchAppMods();
     },
     async deleteApplication(app) {
+      this.currentApplication = {};
+      this.applicationMods = [];
       await this.$db.application.remove(
         {
           _id: app["_id"]

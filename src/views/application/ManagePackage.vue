@@ -39,9 +39,14 @@
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-text-field label="请输入整合包路径" required clearable>
+                <v-text-field
+                  v-model="packageJarPath"
+                  label="请输入服务器运行文件名称"
+                  required
+                  clearable
+                >
                   <template v-slot:append-outer>
-                    <v-btn color="primary" icon>
+                    <v-btn color="primary" icon @click="selectPackageCore">
                       <v-icon>mdi-paperclip</v-icon>
                     </v-btn>
                   </template>
@@ -50,18 +55,17 @@
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-text-field
-                  v-model="serverJarName"
-                  label="请输入服务器运行文件名称"
+                <v-select
+                  :items="hosts"
+                  v-model="host"
+                  item-text="hostName"
+                  label="选择部署的目标服务器"
+                  dense
+                  outlined
+                  return-object
                   required
-                  clearable
-                >
-                  <template v-slot:append-outer>
-                    <v-btn color="primary" icon>
-                      <v-icon>mdi-paperclip</v-icon>
-                    </v-btn>
-                  </template>
-                </v-text-field>
+                  @change="fetchHosts"
+                ></v-select>
               </v-col>
             </v-row>
           </v-form>
@@ -98,12 +102,19 @@
 </template>
 
 <script>
+import { ipcRenderer } from "electron";
+
 export default {
   name: "ImportPackage",
 
   props: {
     isShow: Boolean,
     isModify: Boolean
+  },
+
+  created() {
+    this.fetchHosts();
+    this.packageCoreListener();
   },
 
   data: () => ({
@@ -115,8 +126,9 @@ export default {
     ],
     minMemory: "",
     maxMemory: "",
-    packagePath: "",
-    serverJarName: ""
+    packageJarPath: "",
+    host: {},
+    hosts: []
   }),
 
   methods: {
@@ -130,8 +142,39 @@ export default {
     cancel() {
       this.hideDialog();
     },
-    confirm() {
+    async confirm() {
+      if (!this.$refs.form.validate()) {
+        return;
+      }
+
+      const data = {
+        applicationName: this.applicationName,
+        packageJarPath: this.packageJarPath,
+        hostName: this.host.hostName,
+        hostIP: this.host.hostIP,
+        hostPort: this.host.hostPort,
+        hostUser: this.host.hostUser,
+        hostPassword: this.host.hostPassword,
+        type: "package"
+      };
+
+      console.log(data);
+
+      await this.$db.application.insert(data);
       this.hideDialog();
+    },
+    async fetchHosts() {
+      this.hosts = await this.$db.hosts.find({});
+    },
+    async selectPackageCore() {
+      ipcRenderer.send("open-jar-file-dialog");
+    },
+    packageCoreListener() {
+      ipcRenderer.on("selected-file", (event, arg) => {
+        if (arg.filePaths.length !== 0) {
+          this.packageJarPath = arg.filePaths[0];
+        }
+      });
     }
   }
 };
