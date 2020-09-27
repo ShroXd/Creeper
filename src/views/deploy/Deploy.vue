@@ -327,19 +327,25 @@ export default {
       await this.fetchApplication();
     },
 
-    startDeploy(app) {
+    async startDeploy(app) {
       this.isDeploying = true;
+      this.resetLogsHistory();
+      app.remotePath = `/home/${app.hostUser}/application.zip`;
 
+      const mods = await this.$db.appMods.find({
+        appId: app["_id"]
+      });
+
+      console.log(app);
+      console.log(mods);
+      // this.saveDeployInformation(app);
+      ipcRenderer.send("run-handler", app, mods);
+    },
+    resetLogsHistory() {
       this.deployLogs = [];
       this.currentStageDoing = {};
       this.finishDeployInformation = {};
       this.failureDeployInformation = {};
-
-      app.remotePath = `/home/${app.hostUser}/application.zip`;
-
-      console.log(app);
-      // this.saveDeployInformation(app);
-      ipcRenderer.send("run-handler", app);
     },
     async saveDeployInformation(app) {
       await this.$db.application.update(

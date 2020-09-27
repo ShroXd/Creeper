@@ -91,6 +91,6 @@ ipcMain.on("open-zip-file-dialog", () => {
     });
 });
 
-ipcMain.on("run-handler", (e, param) => {
-  deployHandler(param);
+ipcMain.on("run-handler", (e, app, mods) => {
+  deployHandler(app, mods);
 });

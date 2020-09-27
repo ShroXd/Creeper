@@ -9,6 +9,7 @@ import {
   cleanLocalOldFiles,
   // cleanRemoteOldFiles,
   initializeServerFile,
+  addMods,
   agreeEula,
   zipApplication,
   connectServer,
@@ -18,7 +19,7 @@ import {
 
 let middleware = [];
 
-export async function deployHandler(context) {
+export async function deployHandler(context, mods) {
   const [
     appBasePath,
     appFileName,
@@ -30,12 +31,14 @@ export async function deployHandler(context) {
   console.log("appFileName: " + appFileName);
   console.log("localZipAppName: " + localZipAppName);
   console.log("localZipAppPath: " + localZipAppPath);
+  console.log(mods);
 
   // 初始化处理链
   // TODO 将初始化动态化
   if (context.type === "core") {
     initializeCoreDeployMiddleware(
       context,
+      mods,
       appBasePath,
       appFileName,
       localZipAppName,
@@ -56,6 +59,7 @@ export async function deployHandler(context) {
 
 function initializeCoreDeployMiddleware(
   context,
+  mods,
   appBasePath,
   appFileName,
   localZipAppName,
@@ -74,6 +78,13 @@ function initializeCoreDeployMiddleware(
       maxMemory: context.maxMemory,
       filePath: appBasePath,
       fileName: appFileName
+    })
+  );
+
+  middleware.push(
+    generateMiddleware(addMods, {
+      appBasePath: appBasePath,
+      mods: mods
     })
   );
 

@@ -4,6 +4,7 @@ const path = require("path");
 const exec = require("child_process").exec;
 const compressing = require("compressing");
 const node_ssh = require("node-ssh");
+const cryptoRandomString = require("crypto-random-string");
 
 import { sendDeployInformation } from "./utils";
 
@@ -46,6 +47,26 @@ export function agreeEula(basePath) {
   fs.closeSync(eula);
 
   sendDeployInformation("deploy-finished-stage", "已同意 EULA 文件");
+}
+
+export function addMods(config) {
+  if (config.mods.length === 0) {
+    sendDeployInformation("deploy-finished-stage", "无模组需要添加");
+  }
+
+  const basePath = path.join(
+    config.appBasePath,
+    "mods",
+    cryptoRandomString({ length: 10 })
+  );
+  config.mods.forEach(mod => {
+    const modFileName = path.basename(mod.modFilePath);
+
+    const targetPath = path.resolve(basePath, modFileName);
+    fsextra.copySync(mod.modFilePath, targetPath);
+  });
+
+  sendDeployInformation("deploy-finished-stage", "添加模组成功");
 }
 
 export function zipApplication(config) {
