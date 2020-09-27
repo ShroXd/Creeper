@@ -50,11 +50,7 @@
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn
-                :disabled="isDeploying"
-                color="primary"
-                text
-                @click="startDeploy(item)"
+              <v-btn color="primary" text @click="startDeploy(item)"
                 >开始部署</v-btn
               >
             </v-card-actions>
@@ -333,13 +329,17 @@ export default {
 
     startDeploy(app) {
       this.isDeploying = true;
-      app.minMemory = "1G";
-      app.maxMemory = "1G";
+
+      this.deployLogs = [];
+      this.currentStageDoing = {};
+      this.finishDeployInformation = {};
+      this.failureDeployInformation = {};
+
       app.remotePath = `/home/${app.hostUser}/application.zip`;
 
       console.log(app);
       // this.saveDeployInformation(app);
-      // ipcRenderer.send("deploy-handler", app);
+      ipcRenderer.send("run-handler", app);
     },
     async saveDeployInformation(app) {
       await this.$db.application.update(

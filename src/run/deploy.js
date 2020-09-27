@@ -1,6 +1,10 @@
 const path = require("path");
 
-import { generateMiddleware, sendDeployInformation } from "./utils";
+import {
+  generateMiddleware,
+  sendDeployInformation,
+  preResolvePath
+} from "./utils";
 import {
   cleanLocalOldFiles,
   // cleanRemoteOldFiles,
@@ -9,48 +13,48 @@ import {
   zipApplication,
   connectServer,
   uploadFile,
-  unzipRemoteOldFiles,
-  runClient
+  unzipRemoteOldFiles
 } from "./handle";
 
 let middleware = [];
 
 export async function deployHandler(context) {
-  const appBasePath = path.dirname(context.applicationCorePath);
-  const appFileName = path.basename(context.applicationCorePath);
-  const localZipAppName = appBasePath.split("/").pop() + ".zip";
-  const localZipAppPath = path.join(
-    path.resolve(appBasePath, "../"),
-    localZipAppName
-  );
-
-  // 初始化处理链
-  // TODO 将初始化动态化
-  initializeMiddleware(
-    context,
+  const [
     appBasePath,
     appFileName,
     localZipAppName,
     localZipAppPath
-  );
+  ] = preResolvePath(context);
+
+  console.log("appBasePath: " + appBasePath);
+  console.log("appFileName: " + appFileName);
+  console.log("localZipAppName: " + localZipAppName);
+  console.log("localZipAppPath: " + localZipAppPath);
+
+  // 初始化处理链
+  // TODO 将初始化动态化
+  if (context.type === "core") {
+    initializeCoreDeployMiddleware(
+      context,
+      appBasePath,
+      appFileName,
+      localZipAppName,
+      localZipAppPath
+    );
+  }
 
   // 执行处理链
   try {
     for (let handler of middleware) {
-      if (handler.isSync) {
-        await handler.fn(handler.param);
-      } else {
-        handler.fn(handler.param);
-      }
+      await handler.fn(handler.param);
     }
-
     sendDeployInformation("deploy-success", "部署成功");
   } catch (e) {
     sendDeployInformation("deploy-failure", e || "未知");
   }
 }
 
-function initializeMiddleware(
+function initializeCoreDeployMiddleware(
   context,
   appBasePath,
   appFileName,
@@ -74,11 +78,7 @@ function initializeMiddleware(
   );
 
   middleware.push(
-    generateMiddleware(
-      agreeEula,
-      path.dirname(context.applicationCorePath),
-      false
-    )
+    generateMiddleware(agreeEula, path.dirname(context.applicationCorePath))
   );
 
   middleware.push(
@@ -106,15 +106,7 @@ function initializeMiddleware(
 
   middleware.push(
     generateMiddleware(unzipRemoteOldFiles, {
-      localZipAppName: localZipAppName,
-      remotePath: path.dirname(context.remotePath)
-    })
-  );
-
-  middleware.push(
-    generateMiddleware(runClient, {
-      clientJarFileName: "",
-      remoteClientPath: path.dirname(context.remotePath)
+      remoteDir: path.dirname(context.remotePath)
     })
   );
 }

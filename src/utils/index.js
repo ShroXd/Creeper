@@ -4,7 +4,7 @@ import { win } from "../background";
 import { connect } from "./ssh";
 import { downloader } from "./downloader";
 import { copy, mkdir, open, save } from "./fs";
-import { deployHandler } from "../deploy/deploy";
+import { deployHandler } from "../run/deploy";
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);
@@ -91,6 +91,6 @@ ipcMain.on("open-zip-file-dialog", () => {
     });
 });
 
-ipcMain.on("deploy-handler", (e, param) => {
+ipcMain.on("run-handler", (e, param) => {
   deployHandler(param);
 });

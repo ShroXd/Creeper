@@ -87,8 +87,8 @@ export async function uploadFile(config) {
 
 export async function unzipRemoteOldFiles(config) {
   sendDeployInformation("deploy-current-stage", "正在解压远程文件");
-  await SSH.execCommand(`unzip application.zip && rm -f application.zip`, {
-    cwd: config.remotePath
+  await SSH.execCommand(`unzip -o application.zip && rm application.zip`, {
+    cwd: config.remoteDir
   });
   sendDeployInformation("deploy-finished-stage", "解压成功");
 }
