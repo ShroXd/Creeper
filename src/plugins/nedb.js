@@ -9,37 +9,37 @@ const db = {};
 db.hosts = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "hosts"
+  filename: basePath + "/" + "hosts"
 });
 
 db.cores = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "cores"
+  filename: basePath + "/" + "cores"
 });
 
 db.download = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "download"
+  filename: basePath + "/" + "download"
 });
 
 db.mod = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "mod"
+  filename: basePath + "/" + "mod"
 });
 
 db.script = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "script"
+  filename: basePath + "/" + "script"
 });
 
 db.application = new Datastore({
   autoload: true,
   timestampData: true,
-  filename: basePath + "application"
+  filename: basePath + "/" + "application"
 });
 
 db.appMods = new Datastore({

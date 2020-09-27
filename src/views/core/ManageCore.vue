@@ -42,14 +42,11 @@
               >
                 选择文件下载路径
               </v-btn>
-              <div v-else>
-                <div class="dir-title">下载路径：</div>
-                {{ selectedDirName }}
-              </div>
+              <div v-else class="ml-2">下载路径：{{ selectedDirName }}</div>
             </div>
           </template>
         </steps>
-        <small class="ladder">*如获取失败请尝试科学上网</small>
+        <small class="text-caption">*如获取失败请尝试科学上网</small>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -148,24 +145,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.step {
-  display: flex;
-  align-items: flex-end;
-}
-
-.step__title {
-  margin-right: 15px;
-  color: #2196f3;
-}
-
-.dir-title {
-  display: inline-block;
-  margin-right: 10px;
-}
-
-.ladder {
-  color: #616161;
-  margin-left: 20px;
-}
-</style>
+<style scoped></style>
