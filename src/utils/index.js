@@ -65,6 +65,19 @@ ipcMain.on("open-jar-file-dialog", () => {
     });
 });
 
+ipcMain.on("open-core-file-dialog", () => {
+  dialog
+    .showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Jar", extensions: ["jar"] }]
+    })
+    .then(files => {
+      if (files) {
+        win.send("selected-core-file", files);
+      }
+    });
+});
+
 ipcMain.on("open-zip-file-dialog", () => {
   dialog
     .showOpenDialog({

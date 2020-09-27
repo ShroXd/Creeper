@@ -271,10 +271,10 @@ export default {
       await this.fetchCores();
     },
     importCore() {
-      ipcRenderer.send("open-jar-file-dialog");
+      ipcRenderer.send("open-core-file-dialog");
     },
     importCoreListener() {
-      ipcRenderer.on("selected-file", async (event, arg) => {
+      ipcRenderer.on("selected-core-file", async (event, arg) => {
         const fileSize = fs.statSync(arg.filePaths[0]).size;
         const fileName = path.basename(arg.filePaths[0]);
 

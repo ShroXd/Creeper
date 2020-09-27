@@ -155,6 +155,8 @@ export default {
         hostPort: this.host.hostPort,
         hostUser: this.host.hostUser,
         hostPassword: this.host.hostPassword,
+        minMemory: this.minMemory,
+        maxMemory: this.maxMemory,
         type: "package"
       };
 

@@ -20,6 +20,24 @@
               </v-row>
               <v-row>
                 <v-col cols="6">
+                  <v-text-field
+                    v-model="minMemory"
+                    label="请分配运行最小内存，例如 1G"
+                    required
+                    clearable
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="maxMemory"
+                    label="请分配运行最大内存，例如 1G"
+                    required
+                    clearable
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="6">
                   <v-select
                     :items="hosts"
                     v-model="host"
@@ -109,7 +127,9 @@ export default {
     core: "",
     cores: [],
     selectedPath: "",
-    packagePath: ""
+    packagePath: "",
+    minMemory: "",
+    maxMemory: ""
   }),
 
   methods: {
@@ -132,7 +152,9 @@ export default {
         hostPort: this.host.hostPort,
         hostUser: this.host.hostUser,
         hostPassword: this.host.hostPassword,
-        type: "core"
+        type: "core",
+        minMemory: this.minMemory,
+        maxMemory: this.maxMemory
       };
       await this.$db.application.insert(data);
       this.hideDialog();

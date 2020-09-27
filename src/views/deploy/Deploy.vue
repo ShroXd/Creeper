@@ -8,21 +8,6 @@
           <v-card-title
             >应用
             <v-spacer></v-spacer>
-            <v-btn
-              class="mr-3"
-              :disabled="isDeploying"
-              color="primary"
-              outlined
-              @click="showImportPackageDialog"
-              >导入整合包</v-btn
-            >
-            <v-btn
-              :disabled="isDeploying"
-              color="primary"
-              outlined
-              @click="showCreateApplicationDialog"
-              >创建应用</v-btn
-            >
           </v-card-title>
           <v-divider></v-divider>
           <v-card
@@ -58,23 +43,13 @@
                   <v-icon class="mr-3" color="blue" size="22">
                     mdi-cards-spade
                   </v-icon>
-                  {{ item.applicationCorePath }}
+                  {{ item.applicationCorePath || item.packageJarPath }}
                 </v-col>
               </v-row>
             </v-container>
             <v-divider></v-divider>
             <v-card-actions>
-              <v-btn color="teal darken-1" text>
-                添加模组
-              </v-btn>
               <v-spacer></v-spacer>
-              <v-btn
-                :disabled="isDeploying"
-                color="red darken-1"
-                text
-                @click="showConfirmDialog(item)"
-                >删除</v-btn
-              >
               <v-btn
                 :disabled="isDeploying"
                 color="primary"
@@ -91,28 +66,9 @@
         <v-container>
           <v-card-title>
             部署日志
-            <v-spacer> </v-spacer
-            ><v-btn
-              :disabled="isDeploying"
-              color="primary"
-              outlined
-              @click="exportLogs"
-              >导出日志</v-btn
-            >
+            <v-spacer> </v-spacer>
           </v-card-title>
           <v-divider></v-divider>
-
-          <v-expand-transition>
-            <v-card
-              class="overflow-y-auto"
-              max-height="400"
-              v-show="isTerminalLogsShow"
-            >
-              <v-card-text>
-                {{ terminalLogs }}
-              </v-card-text>
-            </v-card>
-          </v-expand-transition>
 
           <v-timeline :reverse="reverse" dense>
             <v-timeline-item
@@ -310,19 +266,6 @@
         </v-container>
       </v-col>
     </v-row>
-    <create-application
-      v-if="isCreateApplicationDialogShow"
-      :is-show.sync="isCreateApplicationDialogShow"
-      v-on:refresh="fetchApplication"
-      :title="dialogTitle"
-      :mode="mode"
-      :steps="steps"
-    ></create-application>
-    <manage-package
-      v-if="isImportPackageDialogShow"
-      :is-show.sync="isImportPackageDialogShow"
-      v-on:refresh="fetchApplication"
-    ></manage-package>
     <confirm
       v-if="isConfirmDialogShow"
       :is-show.sync="isConfirmDialogShow"
@@ -336,14 +279,12 @@
 <script>
 import Header from "../../components/core/Header";
 import Confirm from "../../components/core/Confirm";
-import CreateApplication from "./CreateApplication";
-import ManagePackage from "./ManagePackage";
 import { ipcRenderer } from "electron";
 
 export default {
   name: "Deploy",
 
-  components: { Header, Confirm, CreateApplication, ManagePackage },
+  components: { Header, Confirm },
 
   created() {
     this.fetchApplication();
@@ -355,15 +296,9 @@ export default {
   },
 
   data: () => ({
-    dialogTitle: "",
-    mode: "",
-    isCreateApplicationDialogShow: false,
-    isImportPackageDialogShow: false,
     isConfirmDialogShow: false,
     isDeploying: false,
-    isTerminalLogsShow: false,
     reverse: true,
-    isNeedConfirmEula: false,
     applications: [],
     waitingForDelete: {},
     startDeployInformation: {},
@@ -371,26 +306,13 @@ export default {
     currentStageDoing: {},
     finishDeployInformation: {},
     failureDeployInformation: {},
-    terminalLogs: [],
-    steps: []
+    terminalLogs: []
   }),
 
   methods: {
-    showCreateApplicationDialog() {
-      this.dialogTitle = "创建应用";
-      this.mode = "";
-      this.steps = ["name", "host", "core"];
-      this.isCreateApplicationDialogShow = true;
-    },
-    showImportPackageDialog() {
-      this.isImportPackageDialogShow = true;
-    },
     showConfirmDialog(core) {
       this.waitingForDelete = core;
       this.isConfirmDialogShow = true;
-    },
-    exportLogs() {
-      this.isTerminalLogsShow = !this.isTerminalLogsShow;
     },
     cancelConfirm() {
       this.waitingForDelete = {};
