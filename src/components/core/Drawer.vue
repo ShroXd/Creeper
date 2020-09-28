@@ -67,6 +67,11 @@ export default {
         icon: "mdi-apple-icloud",
         title: "部署",
         to: "/deploy"
+      },
+      {
+        icon: "mdi-cogs",
+        title: "设置",
+        to: "/setting"
       }
     ]
   })
