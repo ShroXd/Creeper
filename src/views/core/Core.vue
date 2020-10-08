@@ -275,6 +275,7 @@ export default {
     },
     importCoreListener() {
       ipcRenderer.on("selected-core-file", async (event, arg) => {
+        if (arg.filePaths.length === 0) return;
         const fileSize = fs.statSync(arg.filePaths[0]).size;
         const fileName = path.basename(arg.filePaths[0]);
 

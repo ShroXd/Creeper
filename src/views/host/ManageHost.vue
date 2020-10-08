@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isShow" persistent max-width="600px">
     <v-card>
-      <v-card-title class="headline grey lighten-2">
+      <v-card-title class="headline lighten-2">
         <span class="headline">{{ title }}</span>
       </v-card-title>
       <v-card-text>

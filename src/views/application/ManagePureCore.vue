@@ -2,7 +2,7 @@
   <div>
     <v-dialog v-model="isShow" persistent width="700">
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="headline lighten-2">
           {{ title }}
         </v-card-title>
 

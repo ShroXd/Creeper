@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isShow" persistent width="500">
     <v-card>
-      <v-card-title class="headline grey lighten-2">
+      <v-card-title class="headline lighten-2">
         添加核心
       </v-card-title>
       <v-card-text>

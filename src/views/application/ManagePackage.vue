@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isShow" width="700" persistent>
     <v-card>
-      <v-card-title class="headline grey lighten-2">
+      <v-card-title class="headline lighten-2">
         {{ isModify ? "修改应用" : "导入整合包" }}
       </v-card-title>
 
