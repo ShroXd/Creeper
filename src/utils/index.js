@@ -2,18 +2,11 @@ import { dialog, ipcMain } from "electron";
 import { win } from "../background";
 
 import { connect } from "./ssh";
-import { downloader } from "./downloader";
 import { copy, mkdir, open, save } from "./fs";
 import { deployHandler } from "../run/deploy";
 
 ipcMain.on("connect", (e, param) => {
   connect(param, win);
-});
-
-ipcMain.on("download", (e, param) => {
-  downloader(param, win).then(() => {
-    win.send("download-finished");
-  });
 });
 
 ipcMain.on("move-file", (e, param) => {
