@@ -50,7 +50,11 @@
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary" text @click="startDeploy(item)"
+              <v-btn
+                :disabled="isDeploying"
+                color="primary"
+                text
+                @click="startDeploy(item)"
                 >开始部署</v-btn
               >
             </v-card-actions>
@@ -282,8 +286,11 @@ export default {
 
   components: { Header, Confirm },
 
-  mounted() {
+  activated() {
     this.fetchApplication();
+  },
+
+  mounted() {
     this.doingLogsListener();
     this.finishedStageListener();
     this.failureListener();
@@ -374,6 +381,7 @@ export default {
       ipcRenderer.on("deploy-failure", (event, arg) => {
         this.failureDeployInformation = arg;
         this.currentStageDoing = {};
+        this.isDeploying = false;
       });
     },
     successListener() {

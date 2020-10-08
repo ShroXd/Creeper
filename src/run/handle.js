@@ -29,7 +29,7 @@ export function initializeServerFile(config) {
       },
       err => {
         if (err) {
-          console.error(`exec error: ${err}`);
+          sendDeployInformation("deploy-failure", err);
           reject();
         }
         sendDeployInformation("deploy-finished-stage", "完成应用初始化");
