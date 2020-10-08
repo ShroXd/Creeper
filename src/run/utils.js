@@ -1,6 +1,6 @@
 import { win } from "../background";
-const dayjs = require("dayjs");
-const path = require("path");
+import dayjs from "dayjs";
+import path from "path";
 
 export function generateMiddleware(fn, param, isSync = true) {
   return {

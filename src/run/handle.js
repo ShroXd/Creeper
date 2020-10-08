@@ -1,9 +1,9 @@
-const fs = require("fs");
-const fsextra = require("fs-extra");
-const path = require("path");
-const exec = require("child_process").exec;
-const compressing = require("compressing");
-const node_ssh = require("node-ssh");
+import fs from "fs";
+import * as fsextra from "fs-extra";
+import path from "path";
+import exec from "child_process";
+import compressing from "compressing";
+import node_ssh from "node-ssh";
 
 import { sendDeployInformation } from "./utils";
 

@@ -1,4 +1,4 @@
-const node_ssh = require("node-ssh");
+import node_ssh from "node-ssh"
 
 let SSH = new node_ssh();
 
