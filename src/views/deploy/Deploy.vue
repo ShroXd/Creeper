@@ -291,6 +291,7 @@ export default {
   },
 
   mounted() {
+    this.fetchApplication();
     this.doingLogsListener();
     this.finishedStageListener();
     this.failureListener();
