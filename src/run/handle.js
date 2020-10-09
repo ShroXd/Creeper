@@ -51,6 +51,7 @@ export function agreeEula(basePath) {
 export function addMods(config) {
   if (config.mods.length === 0) {
     sendDeployInformation("deploy-finished-stage", "无模组需要添加");
+    return;
   }
 
   const basePath = path.join(config.appBasePath, "mods", "mcmd-mods");

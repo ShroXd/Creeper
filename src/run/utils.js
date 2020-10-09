@@ -25,7 +25,7 @@ export function preResolvePath(context) {
 
   const appBasePath = path.dirname(jarFilePath);
   const appFileName = path.basename(jarFilePath);
-  const localZipAppName = appBasePath.split("/").pop() + ".zip";
+  const localZipAppName = path.basename(appBasePath) + ".zip";
   const localZipAppPath = path.join(
     path.resolve(appBasePath, "../"),
     localZipAppName
