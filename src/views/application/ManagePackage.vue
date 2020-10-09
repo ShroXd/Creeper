@@ -41,7 +41,7 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="packageJarPath"
-                  label="请输入服务器运行文件名称"
+                  label="请输入服务器运行文件绝对路径"
                   required
                   clearable
                 >
