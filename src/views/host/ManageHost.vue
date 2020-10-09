@@ -6,7 +6,7 @@
       </v-card-title>
       <v-card-text>
         <v-container>
-          <v-form ref="form" :disabled="isLocked">
+          <v-form ref="form" :disabled="isLocked && mode === 'edit'">
             <v-row>
               <v-col cols="12">
                 <v-text-field
