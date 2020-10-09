@@ -30,29 +30,42 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: true,
       builderOptions: {
-        appId: "com.bebopser.creeper",
         productName: "Creeper",
+        appId: "com.bebopser.creeper",
         copyright: "Copyright © 2020",
-        files: ["**/*", "static/*"],
         asar: true,
-        mac: {},
-        win: {
-          icon: "./public/win.ico",
-          target: [
+        nsis: {
+          oneClick: false,
+          perMachine: true,
+          allowElevation: false,
+          allowToChangeInstallationDirectory: true,
+          displayLanguageSelector: true,
+          language: 2052
+        },
+        dmg: {
+          contents: [
             {
-              target: "nsis",
-              arch: ["x64", "ia32"]
+              x: 410,
+              y: 150,
+              type: "link",
+              path: "/Applications"
+            },
+            {
+              x: 130,
+              y: 150,
+              type: "file"
             }
           ]
         },
-        nsis: {
-          oneClick: false,
-          allowElevation: true,
-          allowToChangeInstallationDirectory: true,
-          installerIcon: "./public/win.ico",
-          uninstallerIcon: "./public/win.ico",
-          installerHeaderIcon: "./public/win.ico",
-          createDesktopShortcut: true
+        mac: {
+          icon: "./public/mac.ico"
+        },
+        win: {
+          icon: "./public/win.ico",
+          target: "nsis"
+        },
+        linux: {
+          icon: "./public/win.ico"
         }
       }
     }
