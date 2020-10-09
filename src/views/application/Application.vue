@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <Header title="部署" subtitle="您可以在这里创建应用并部署"></Header>
+    <Header title="应用" subtitle="您可以在这里创建并管理应用"></Header>
     <v-divider></v-divider>
     <v-row>
       <v-col md="6">
