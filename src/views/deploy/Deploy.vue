@@ -344,11 +344,10 @@ export default {
         appId: app["_id"]
       });
 
-      console.log(app);
-      console.log(mods);
       // this.saveDeployInformation(app);
       ipcRenderer.send("run-handler", app, mods);
     },
+
     resetLogsHistory() {
       this.deployLogs = [];
       this.currentStageDoing = {};

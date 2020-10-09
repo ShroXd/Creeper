@@ -2,7 +2,7 @@
   <v-app id="inspire">
     <drawer></drawer>
     <v-main>
-      <keep-alive :include="['Core']">
+      <keep-alive :include="['Deploy', 'Core']">
         <router-view></router-view>
       </keep-alive>
     </v-main>

@@ -34,7 +34,13 @@ export async function deployHandler(context, mods) {
   }
 }
 
+function cleanMiddleware() {
+  middleware = [];
+}
+
 function middlewareFactory(context, mods) {
+  cleanMiddleware();
+
   const [
     appBasePath,
     appFileName,
@@ -42,11 +48,6 @@ function middlewareFactory(context, mods) {
     localZipAppPath
   ] = preResolvePath(context);
 
-  console.log("appBasePath: " + appBasePath);
-  console.log("appFileName: " + appFileName);
-  console.log("localZipAppName: " + localZipAppName);
-  console.log("localZipAppPath: " + localZipAppPath);
-  console.log(mods);
   switch (context.type) {
     case "core":
       initializeCoreDeployMiddleware(
