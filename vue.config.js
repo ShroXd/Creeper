@@ -58,7 +58,7 @@ module.exports = {
           ]
         },
         mac: {
-          icon: "./public/mac.ico"
+          icon: "./public/mac.icns"
         },
         win: {
           icon: "./public/win.ico",
