@@ -1,34 +1,29 @@
-# creeper
+# Creeper &middot; ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## Project setup
+Creeper 是一款 Minecraft Client 管理与部署工具
+
+- 解耦化的管理服务器、服务端核心、模组
+- 可视化部署过程
+- 支持黑暗模式
+
+## 调试
+
+下载源码
+```
+git clone git@github.com:ShroXd/Creeper.git
+```
+安装依赖
 ```
 yarn install
 ```
-
-### Compiles and hot-reloads for development
+运行开发模式
 ```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
+yarn run electron:serve
 ```
 
-### Run your unit tests
-```
-yarn test:unit
-```
+## 一些说明
+- 由于后端服务还未开发完成，所以部署功能不完善，你需要手动启动服务器
+- 目前项目仍处于 Alpha 阶段，功能存在较大变化可能
 
-### Run your end-to-end tests
-```
-yarn test:e2e
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## License
+MIT
