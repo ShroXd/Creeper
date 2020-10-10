@@ -21,6 +21,13 @@ yarn install
 yarn run electron:serve
 ```
 
+## 截图
+![](https://bebopfzj.oss-cn-hangzhou.aliyuncs.com/uPic/2020-10-10-BhRNsg.png)
+
+![](https://bebopfzj.oss-cn-hangzhou.aliyuncs.com/uPic/2020-10-10-zwGLr5.png)
+
+![](https://bebopfzj.oss-cn-hangzhou.aliyuncs.com/uPic/2020-10-10-Q7lbYq.png)
+
 ## 一些说明
 - 由于后端服务还未开发完成，所以部署功能不完善，你需要手动启动服务器
 - 目前项目仍处于 Alpha 阶段，功能存在较大变化可能
